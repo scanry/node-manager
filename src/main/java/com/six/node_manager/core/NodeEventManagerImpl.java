@@ -6,7 +6,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +28,7 @@ public class NodeEventManagerImpl extends AbstractService implements NodeEventMa
 
 	private Map<NodeEventType, Set<NodeEventListen>> nodeEventListens = new ConcurrentHashMap<>();
 	private final LinkedBlockingQueue<NodeEvent> eventQueue = new LinkedBlockingQueue<NodeEvent>();
+	private static final NodeEvent END_NODE_EVENT = new NodeEvent(null, null);
 	private static final int DEFAULT_MAX_EVENT_QUEUE_SIZE = 10000;
 	private int maxEventQueueSize;
 	private Thread processEventQueueThread;
@@ -46,13 +46,11 @@ public class NodeEventManagerImpl extends AbstractService implements NodeEventMa
 	}
 
 	@Override
-	public void addNodeEvent(NodeEvent nodeEvent) {
+	public boolean addNodeEvent(NodeEvent nodeEvent) {
 		if (this.eventQueue.size() <= maxEventQueueSize) {
-			this.eventQueue.add(nodeEvent);
-		} else {
-			log.warn("event queue size[{}] enough, so drop this event {}", this.eventQueue.size(),
-					nodeEvent.toString());
+			return this.eventQueue.add(nodeEvent);
 		}
+		return false;
 	}
 
 	@Override
@@ -77,16 +75,17 @@ public class NodeEventManagerImpl extends AbstractService implements NodeEventMa
 
 	@Override
 	protected void doStop() {
-		// no something to do
+		eventQueue.add(END_NODE_EVENT);
 	}
 
 	private void processEventQueue() {
 		NodeEvent event = null;
 		Set<NodeEventListen> nodeEventListenSet = null;
+		log.info("start to run " + getName() + " service's process Event Queue's thread");
 		while (isRunning()) {
 			try {
-				event = this.eventQueue.poll(3000, TimeUnit.MILLISECONDS);
-				if (event != null && null != (nodeEventListenSet = nodeEventListens.get(event.getType()))) {
+				event = this.eventQueue.take();
+				if (END_NODE_EVENT != event && null != (nodeEventListenSet = nodeEventListens.get(event.getType()))) {
 					for (NodeEventListen nodeEventListen : nodeEventListenSet) {
 						nodeEventListen.listen(event);
 					}
@@ -95,6 +94,7 @@ public class NodeEventManagerImpl extends AbstractService implements NodeEventMa
 				log.warn(getName() + " service has exception. ", e);
 			}
 		}
+		log.info("end " + getName() + " service's process Event Queue's thread");
 	}
 
 }

@@ -8,7 +8,7 @@ package com.six.node_manager;
  */
 public interface NodeEventManager extends Service{
 
-	void addNodeEvent(NodeEvent nodeEvent);
+	boolean addNodeEvent(NodeEvent nodeEvent);
 
 	void registerNodeEventListen(NodeEventType event, NodeEventListen nodeListen);
 

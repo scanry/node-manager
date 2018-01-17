@@ -1,13 +1,15 @@
 package com.six.node_manager.core;
 
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 
+import com.six.node_manager.Cache;
+import com.six.node_manager.FileSystem;
+import com.six.node_manager.Lock;
 import com.six.node_manager.NodeEventManager;
 import com.six.node_manager.NodeInfo;
 import com.six.node_manager.NodeManager;
+import com.six.node_manager.NodeProtocolManager;
 
-import six.com.rpc.AsyCallback;
 
 /**
  * @author sixliu
@@ -43,30 +45,6 @@ public class StandAloneNodeManager extends AbstractNodeManager implements NodeMa
 	}
 
 	@Override
-	public void registerNodeRpcProtocol(ExecutorService executorService, Class<?> protocol) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void unregisterNodeRpcProtocol(Class<?> protocol) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public <T> T lookupNodeRpcProtocol(NodeInfo node, Class<?> protocol) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public <T> T lookupNodeRpcProtocol(NodeInfo node, Class<?> protocol, AsyCallback callback) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
 	public NodeEventManager getNodeEventManager() {
 		// TODO Auto-generated method stub
 		return null;
@@ -82,6 +60,30 @@ public class StandAloneNodeManager extends AbstractNodeManager implements NodeMa
 	protected void doStop() {
 		// TODO Auto-generated method stub
 
+	}
+
+	@Override
+	public NodeProtocolManager getNodeProtocolManager() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Cache newCache(String cacheName) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Lock newLock() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public FileSystem getFileSystem() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }
