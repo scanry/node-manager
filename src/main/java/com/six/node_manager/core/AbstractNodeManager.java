@@ -1,8 +1,6 @@
 package com.six.node_manager.core;
 
-import java.util.Objects;
-
-import com.six.node_manager.NodeInfo;
+import com.six.node_manager.AbstractService;
 import com.six.node_manager.NodeManager;
 
 /**
@@ -11,17 +9,9 @@ import com.six.node_manager.NodeManager;
  * @email 359852326@qq.com
  * @Description
  */
-public abstract class AbstractNodeManager implements NodeManager {
+public abstract class AbstractNodeManager extends AbstractService implements NodeManager {
 
-	protected Node localNode;
-
-	public AbstractNodeManager(NodeInfo localNodeInfo) {
-		Objects.requireNonNull(localNodeInfo);
-		this.localNode = new Node(localNodeInfo.getClusterName(), localNodeInfo.getName(), localNodeInfo.getHost(),
-				localNodeInfo.getPort(), localNodeInfo.getVersion());
-	}
-
-	protected final Node getLocalNode() {
-		return localNode;
+	public AbstractNodeManager() {
+		super("nodeManager");
 	}
 }

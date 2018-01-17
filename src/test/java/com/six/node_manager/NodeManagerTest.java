@@ -13,11 +13,11 @@ public class NodeManagerTest {
 		builder.setClusterEnable(true);
 		builder.setClusterName("cluster");
 		builder.setNodeName("node1");
-		builder.setLocalHost("127.0.0.1");
-		builder.setLocalPort(8888);
+		builder.setHost("127.0.0.1");
+		builder.setPort(8888);
 		NodeManager nodeManager = builder.build();
 		nodeManager.start();
-		nodeManager.shutdown();
+		nodeManager.stop();
 	}
 
 }

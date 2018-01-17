@@ -11,7 +11,7 @@ import six.com.rpc.AsyCallback;
  * @email 359852326@qq.com
  * @Description
  */
-public interface NodeManager{
+public interface NodeManager extends Service{
 
 	String getClusterName();
 
@@ -21,9 +21,7 @@ public interface NodeManager{
 
 	List<NodeInfo> getSlaveNods();
 
-	void registerNodeEventListen(NodeEvent event, NodeEventListen nodeListen);
-
-	void unregisterNodeEventListen(NodeEvent event, NodeEventListen nodeListen);
+	NodeEventManager getNodeEventManager();
 
 	void registerNodeRpcProtocol(ExecutorService executorService, Class<?> protocol);
 
@@ -32,8 +30,4 @@ public interface NodeManager{
 	<T>T lookupNodeRpcProtocol(NodeInfo node, Class<?> protocol);
 	
 	<T>T lookupNodeRpcProtocol(NodeInfo node, Class<?> protocol,AsyCallback callback);
-
-	void start();
-
-	void shutdown();
 }

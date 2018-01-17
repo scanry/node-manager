@@ -2,8 +2,8 @@ package com.six.node_manager;
 
 import com.six.node_manager.core.ClusterNodeManager;
 import com.six.node_manager.core.StandAloneNodeManager;
-import com.six.node_manager.discovery.impl.RpcNodeDiscovery;
-import com.six.node_manager.election.impl.FastLeaderElection;
+
+import lombok.Data;
 
 /**
  * @author sixliu
@@ -11,6 +11,7 @@ import com.six.node_manager.election.impl.FastLeaderElection;
  * @email 359852326@qq.com
  * @Description
  */
+@Data
 public class NodeManagerBuilder {
 
 	private boolean clusterEnable;
@@ -18,26 +19,8 @@ public class NodeManagerBuilder {
 	private String nodeName;
 	private String host;
 	private int port;
-
-	public void setClusterEnable(boolean clusterEnable) {
-		this.clusterEnable = clusterEnable;
-	}
-
-	public void setClusterName(String clusterName) {
-		this.clusterName = clusterName;
-	}
-
-	public void setNodeName(String nodeName) {
-		this.nodeName = nodeName;
-	}
-
-	public void setLocalHost(String host) {
-		this.host = host;
-	}
-
-	public void setLocalPort(int port) {
-		this.port = port;
-	}
+	private int version;
+	private String discoveryNodes;
 
 	public NodeInfo buildLocalNodeInfo() {
 		NodeInfo localNodeInfo = new NodeInfo();
@@ -45,12 +28,14 @@ public class NodeManagerBuilder {
 		localNodeInfo.setName(nodeName);
 		localNodeInfo.setHost(host);
 		localNodeInfo.setPort(port);
+		localNodeInfo.setVersion(version);
 		return localNodeInfo;
 	}
 
 	public NodeManager build() {
+		NodeInfo localNodeInfo = buildLocalNodeInfo();
 		if (clusterEnable) {
-			return new ClusterNodeManager(buildLocalNodeInfo(), new FastLeaderElection(), new RpcNodeDiscovery());
+			return new ClusterNodeManager(localNodeInfo, null);
 		} else {
 			return new StandAloneNodeManager();
 		}

@@ -3,8 +3,7 @@ package com.six.node_manager.core;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
-import com.six.node_manager.NodeEvent;
-import com.six.node_manager.NodeEventListen;
+import com.six.node_manager.NodeEventManager;
 import com.six.node_manager.NodeInfo;
 import com.six.node_manager.NodeManager;
 
@@ -16,7 +15,8 @@ import six.com.rpc.AsyCallback;
  * @email 359852326@qq.com
  * @Description
  */
-public class StandAloneNodeManager implements NodeManager {
+public class StandAloneNodeManager extends AbstractNodeManager implements NodeManager {
+
 
 	@Override
 	public String getClusterName() {
@@ -40,18 +40,6 @@ public class StandAloneNodeManager implements NodeManager {
 	public List<NodeInfo> getSlaveNods() {
 		// TODO Auto-generated method stub
 		return null;
-	}
-
-	@Override
-	public void registerNodeEventListen(NodeEvent event, NodeEventListen nodeListen) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void unregisterNodeEventListen(NodeEvent event, NodeEventListen nodeListen) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
@@ -79,13 +67,19 @@ public class StandAloneNodeManager implements NodeManager {
 	}
 
 	@Override
-	public void start() {
+	public NodeEventManager getNodeEventManager() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	protected void doStart() {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public void shutdown() {
+	protected void doStop() {
 		// TODO Auto-generated method stub
 
 	}

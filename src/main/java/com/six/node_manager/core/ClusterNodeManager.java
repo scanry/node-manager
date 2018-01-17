@@ -1,18 +1,13 @@
 package com.six.node_manager.core;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 
-import com.six.node_manager.NodeEvent;
-import com.six.node_manager.NodeEventListen;
+import com.six.node_manager.NodeDiscovery;
+import com.six.node_manager.NodeEventManager;
 import com.six.node_manager.NodeInfo;
-import com.six.node_manager.discovery.NodeDiscovery;
-import com.six.node_manager.election.LeaderElection;
+import com.six.node_manager.discovery.RpcNodeDiscovery;
 import com.six.node_manager.protocol.MasterNodeProtocol;
 import com.six.node_manager.protocol.SlaveNodeProtocol;
 import com.six.node_manager.protocol.impl.MasterNodeProtocolImpl;
@@ -32,22 +27,19 @@ import six.com.rpc.server.RpcServer;
  */
 public class ClusterNodeManager extends AbstractNodeManager {
 
-	private LeaderElection leaderElection;
 	private NodeDiscovery nodeDiscovery;
 	private RpcServer server;
 	private RpcClient client;
-	private Map<NodeEvent, Set<NodeEventListen>> nodeEventListens = new ConcurrentHashMap<>();
+	private NodeEventManager nodeEventManager;
+	
 
-	public ClusterNodeManager(NodeInfo localNodeInfo, LeaderElection leaderElection, NodeDiscovery nodeDiscovery) {
-		super(localNodeInfo);
-		Objects.requireNonNull(leaderElection);
-		Objects.requireNonNull(nodeDiscovery);
-		this.leaderElection = leaderElection;
-		this.nodeDiscovery = nodeDiscovery;
+	public ClusterNodeManager(NodeInfo localNodeInfo,List<NodeInfo> needDiscoveryNodeInfos) {
 		server = new NettyRpcServer(localNodeInfo.getHost(), localNodeInfo.getPort());
 		server.register(MasterNodeProtocol.class, new MasterNodeProtocolImpl());
 		server.register(SlaveNodeProtocol.class, new SlaveNodeProtocolImpl());
 		client = new NettyRpcCilent();
+		nodeEventManager = new NodeEventManagerImpl();
+		this.nodeDiscovery=new RpcNodeDiscovery(localNodeInfo,null,this);
 	}
 
 	@Override
@@ -71,21 +63,6 @@ public class ClusterNodeManager extends AbstractNodeManager {
 	}
 
 	@Override
-	public void registerNodeEventListen(NodeEvent event, NodeEventListen nodeListen) {
-		Objects.requireNonNull(event);
-		Objects.requireNonNull(nodeListen);
-		nodeEventListens.computeIfAbsent(event, newKey -> new HashSet<>()).add(nodeListen);
-	}
-
-	@Override
-	public void unregisterNodeEventListen(NodeEvent event, NodeEventListen nodeListen) {
-		Set<NodeEventListen> set = nodeEventListens.get(event);
-		if (null != set) {
-			set.remove(nodeListen);
-		}
-	}
-
-	@Override
 	public void registerNodeRpcProtocol(ExecutorService executorService, Class<?> protocol) {
 		server.register(executorService, MasterNodeProtocol.class, new MasterNodeProtocolImpl());
 	}
@@ -106,38 +83,24 @@ public class ClusterNodeManager extends AbstractNodeManager {
 		Objects.requireNonNull(node);
 		return client.lookupService(node.getHost(), node.getPort(), protocol, callback);
 	}
-
 	@Override
-	public void start() {
+	protected void doStart() {
 		server.start();
-		NodeInfo localNodeInfo = getLocalNodeInfo();
-		nodeDiscovery.registerNodeInfo(localNodeInfo);
-		NodeInfo masterNodeInfo = nodeDiscovery.getMasterNodeInfo();
-		if (null == masterNodeInfo) {
-			masterNodeInfo = leaderElection.election(localNodeInfo);
-			afterElection(masterNodeInfo);
-		}
+		nodeDiscovery.start();
 	}
 
-	private void afterElection(NodeInfo masterNodeInfo) {
-		NodeInfo localNodeInfo = getLocalNodeInfo();
-		if (!localNodeInfo.equals(masterNodeInfo)) {
-			getLocalNode().slave();
-			MasterNodeProtocol masterNodeProtocol = lookupNodeRpcProtocol(masterNodeInfo, MasterNodeProtocol.class);
-			masterNodeProtocol.join(localNodeInfo);
-		} else {
-			getLocalNode().master();
-		}
+
+
+	@Override
+	public NodeEventManager getNodeEventManager() {
+		return nodeEventManager;
 	}
 
 	@Override
-	public void shutdown() {
+	protected void doStop() {
 		MasterNodeProtocol masterNodeProtocol = lookupNodeRpcProtocol(nodeDiscovery.getMasterNodeInfo(),
 				MasterNodeProtocol.class);
 		masterNodeProtocol.leave(nodeDiscovery.getLocalNodeInfo());
-		if (null != leaderElection) {
-			leaderElection.close();
-		}
 		if (null != server) {
 			server.shutdown();
 		}
@@ -145,5 +108,4 @@ public class ClusterNodeManager extends AbstractNodeManager {
 			client.shutdown();
 		}
 	}
-
 }
