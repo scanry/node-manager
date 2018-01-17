@@ -1,15 +1,16 @@
 package com.six.node_manager;
 
-/**   
- * @author sixliu   
- * @date   2018年1月17日 
- * @email  359852326@qq.com  
- * @Description 
+/**
+ * @author sixliu
+ * @date 2018年1月17日
+ * @email 359852326@qq.com
+ * @Description
  */
-public interface NodeEventManager {
+public interface NodeEventManager extends Service{
 
-	void registerNodeEventListen(NodeEvent event, NodeEventListen nodeListen);
+	void addNodeEvent(NodeEvent nodeEvent);
 
-	void unregisterNodeEventListen(NodeEvent event, NodeEventListen nodeListen);
+	void registerNodeEventListen(NodeEventType event, NodeEventListen nodeListen);
+
+	void unregisterNodeEventListen(NodeEventType event, NodeEventListen nodeListen);
 }
-

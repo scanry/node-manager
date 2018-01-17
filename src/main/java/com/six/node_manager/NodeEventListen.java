@@ -9,5 +9,5 @@ package com.six.node_manager;
 @FunctionalInterface
 public interface NodeEventListen {
 
-	void listen(NodeInfo node);
+	void listen(NodeEvent nodeEvent);
 }

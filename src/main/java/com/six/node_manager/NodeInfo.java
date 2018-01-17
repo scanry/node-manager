@@ -24,4 +24,9 @@ public class NodeInfo implements Serializable {
 	private NodeState state;
 	private long version;
 
+	@Override
+	public String toString() {
+		return "{clusterName=" + clusterName + ", name=" + name + ", host=" + host + ", port=" + port
+				+ ", state=" + state + ", version=" + version + "}";
+	}
 }

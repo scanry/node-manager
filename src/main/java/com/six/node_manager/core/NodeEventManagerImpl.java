@@ -5,11 +5,17 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.six.node_manager.NodeEventType;
+import com.six.node_manager.AbstractService;
 import com.six.node_manager.NodeEvent;
 import com.six.node_manager.NodeEventListen;
 import com.six.node_manager.NodeEventManager;
-import com.six.node_manager.NodeInfo;
 
 /**
  * @author sixliu
@@ -17,26 +23,77 @@ import com.six.node_manager.NodeInfo;
  * @email 359852326@qq.com
  * @Description
  */
-public class NodeEventManagerImpl implements NodeEventManager {
+public class NodeEventManagerImpl extends AbstractService implements NodeEventManager {
 
-	private Map<NodeEvent, Set<NodeEventListen>> nodeEventListens = new ConcurrentHashMap<>();
+	private static final Logger log = LoggerFactory.getLogger(NodeEventManagerImpl.class);
 
-	protected void happen(NodeEvent event,NodeInfo nodeInfo) {
-		
+	private Map<NodeEventType, Set<NodeEventListen>> nodeEventListens = new ConcurrentHashMap<>();
+	private final LinkedBlockingQueue<NodeEvent> eventQueue = new LinkedBlockingQueue<NodeEvent>();
+	private static final int DEFAULT_MAX_EVENT_QUEUE_SIZE = 10000;
+	private int maxEventQueueSize;
+	private Thread processEventQueueThread;
+
+	public NodeEventManagerImpl() {
+		this(DEFAULT_MAX_EVENT_QUEUE_SIZE);
+	}
+
+	public NodeEventManagerImpl(int maxEventQueueSize) {
+		super("NodeEventManager");
+		this.maxEventQueueSize = maxEventQueueSize;
+		processEventQueueThread = new Thread(() -> {
+			processEventQueue();
+		}, "NodeEventManager-processEventQueue-Thread");
 	}
 
 	@Override
-	public void registerNodeEventListen(NodeEvent event, NodeEventListen nodeListen) {
+	public void addNodeEvent(NodeEvent nodeEvent) {
+		if (this.eventQueue.size() <= maxEventQueueSize) {
+			this.eventQueue.add(nodeEvent);
+		} else {
+			log.warn("event queue size[{}] enough, so drop this event {}", this.eventQueue.size(),
+					nodeEvent.toString());
+		}
+	}
+
+	@Override
+	public void registerNodeEventListen(NodeEventType event, NodeEventListen nodeListen) {
 		Objects.requireNonNull(event);
 		Objects.requireNonNull(nodeListen);
 		nodeEventListens.computeIfAbsent(event, newKey -> new HashSet<>()).add(nodeListen);
 	}
 
 	@Override
-	public void unregisterNodeEventListen(NodeEvent event, NodeEventListen nodeListen) {
-		Set<NodeEventListen> set = nodeEventListens.get(event);
-		if (null != set) {
-			set.remove(nodeListen);
+	public void unregisterNodeEventListen(NodeEventType event, NodeEventListen nodeListen) {
+		nodeEventListens.computeIfPresent(event, (key, existedSet) -> {
+			existedSet.remove(nodeListen);
+			return existedSet.size() > 0 ? existedSet : null;
+		});
+	}
+
+	@Override
+	protected void doStart() {
+		processEventQueueThread.start();
+	}
+
+	@Override
+	protected void doStop() {
+		// no something to do
+	}
+
+	private void processEventQueue() {
+		NodeEvent event = null;
+		Set<NodeEventListen> nodeEventListenSet = null;
+		while (isRunning()) {
+			try {
+				event = this.eventQueue.poll(3000, TimeUnit.MILLISECONDS);
+				if (event != null && null != (nodeEventListenSet = nodeEventListens.get(event.getType()))) {
+					for (NodeEventListen nodeEventListen : nodeEventListenSet) {
+						nodeEventListen.listen(event);
+					}
+				}
+			} catch (Exception e) {
+				log.warn(getName() + " service has exception. ", e);
+			}
 		}
 	}
 

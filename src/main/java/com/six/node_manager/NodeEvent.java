@@ -1,23 +1,29 @@
 package com.six.node_manager;
 
 /**
- * @author sixliu
- * @date 2017年12月21日
- * @email 359852326@qq.com
- * @Description 节点事件
+ * @author sixliu E-mail:359852326@qq.com
+ * @version 创建时间：2018年1月17日 下午11:04:31 类说明
  */
-public enum NodeEvent {
-	/** 集群初始化启动时成为master **/
-	INIT_BECAOME_MASTER,
-	/** 成为slave **/
-	BECAOME_SLAVE,
-	/** slave加入 **/
-	SLAVE_JOIN,
-	/** 丢失master **/
-	MISS_MASTER,
-	/** 运行期master丢失后重新选举成为master **/
-	RUNTIME_BECAOME_MASTER,
-	/** 丢失slave **/
-	MISS_SLAVE;
+public class NodeEvent {
 
+	private NodeEventType type;
+	private NodeInfo nodeInfo;
+
+	public NodeEvent(NodeEventType type, NodeInfo nodeInfo) {
+		this.type = type;
+		this.nodeInfo = nodeInfo;
+	}
+
+	public NodeEventType getType() {
+		return type;
+	}
+
+	public NodeInfo getNodeInfo() {
+		return nodeInfo;
+	}
+
+	@Override
+	public String toString() {
+		return "NodeEvent [type=" + type + ", nodeInfo=" + nodeInfo + "]";
+	}
 }

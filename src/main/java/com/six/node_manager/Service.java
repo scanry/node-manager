@@ -34,6 +34,9 @@ public interface Service {
 	 * @return
 	 */
 	State getState();
+	
+	boolean isRunning();
+
 
 	/**
 	 * 启动服务
@@ -44,7 +47,7 @@ public interface Service {
 	 * 停止服务
 	 */
 	void stop();
-
+	
 	void addListener(Listener listener, Executor executor);
 
 	interface Listener {

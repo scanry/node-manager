@@ -2,7 +2,7 @@ package com.six.node_manager.discovery;
 
 import java.util.List;
 
-import com.six.node_manager.NodeEvent;
+import com.six.node_manager.NodeEventType;
 import com.six.node_manager.NodeInfo;
 import com.six.node_manager.NodeManager;
 import com.six.node_manager.protocol.MasterNodeProtocol;
@@ -67,10 +67,10 @@ public class RpcNodeDiscovery extends AbstractNodeDiscovery {
 			MasterNodeProtocol masterNodeProtocol = getNodeManager().lookupNodeRpcProtocol(masterNodeInfo,
 					MasterNodeProtocol.class);
 			masterNodeProtocol.join(localNodeInfo);
-			getNodeManager().getNodeEventManager().happen(NodeEvent.BECAOME_SLAVE, localNodeInfo);
+			getNodeManager().getNodeEventManager().happen(NodeEventType.BECAOME_SLAVE, localNodeInfo);
 		} else {
 			getLocalNode().master();
-			getNodeManager().getNodeEventManager().happen(NodeEvent.INIT_BECAOME_MASTER, localNodeInfo);
+			getNodeManager().getNodeEventManager().happen(NodeEventType.INIT_BECAOME_MASTER, localNodeInfo);
 		}
 	}
 }

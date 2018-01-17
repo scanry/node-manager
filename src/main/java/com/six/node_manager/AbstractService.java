@@ -7,7 +7,6 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 /**
  * @author sixliu
  * @date 2018年1月17日
@@ -36,6 +35,11 @@ public abstract class AbstractService implements Service {
 	@Override
 	public final State getState() {
 		return state;
+	}
+
+	@Override
+	public final boolean isRunning() {
+		return State.START == state;
 	}
 
 	@Override
