@@ -16,7 +16,11 @@ public class NodeManagerTest {
 		builder.setHost("127.0.0.1");
 		builder.setPort(8888);
 		NodeManager nodeManager = builder.build();
+		nodeManager.getNodeEventManager().registerNodeEventListen(NodeEvent.INIT_BECAOME_MASTER, node -> {
+
+		});
 		nodeManager.start();
+
 		nodeManager.stop();
 	}
 

@@ -15,10 +15,10 @@ import org.slf4j.LoggerFactory;
 public abstract class AbstractService implements Service {
 
 	private static Logger log = LoggerFactory.getLogger(AbstractService.class);
-
+ 
 	private static AtomicReferenceFieldUpdater<AbstractService, State> STATE_UPDATE = AtomicReferenceFieldUpdater
 			.newUpdater(AbstractService.class, State.class, "state");
-	private String name;
+	private final String name;
 	private volatile State state = State.INIT;
 
 	public AbstractService(String name) {

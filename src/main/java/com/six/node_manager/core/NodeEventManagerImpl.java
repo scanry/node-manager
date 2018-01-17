@@ -21,10 +21,8 @@ public class NodeEventManagerImpl implements NodeEventManager {
 
 	private Map<NodeEvent, Set<NodeEventListen>> nodeEventListens = new ConcurrentHashMap<>();
 
-	@Override
-	public void happen(NodeEvent event,NodeInfo nodeInfo) {
-		// TODO Auto-generated method stub
-
+	protected void happen(NodeEvent event,NodeInfo nodeInfo) {
+		
 	}
 
 	@Override

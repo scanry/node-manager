@@ -8,8 +8,6 @@ package com.six.node_manager;
  */
 public interface NodeEventManager {
 
-	void happen(NodeEvent event,NodeInfo nodeInfo);
-	
 	void registerNodeEventListen(NodeEvent event, NodeEventListen nodeListen);
 
 	void unregisterNodeEventListen(NodeEvent event, NodeEventListen nodeListen);
