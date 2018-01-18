@@ -1,4 +1,4 @@
-package com.six.node_manager.protocol;
+package com.six.node_manager.discovery;
 
 
 /**   
@@ -7,7 +7,7 @@ package com.six.node_manager.protocol;
  * @email  359852326@qq.com  
  * @Description 
  */
-public interface SlaveNodeProtocol extends NodeProtocol{
+public interface SlaveNodeDiscoveryProtocol extends NodeDiscoveryProtocol{
 
 }
 

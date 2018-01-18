@@ -1,7 +1,6 @@
 package com.six.node_manager;
 
 import java.util.Objects;
-import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
 import org.slf4j.Logger;
@@ -46,11 +45,7 @@ public abstract class AbstractService implements Service {
 	public final void start() {
 		if (STATE_UPDATE.compareAndSet(this, State.INIT, State.START)) {
 			log.info("will start service[" + getName() + "]");
-			try {
-				doStart();
-			} catch (Exception e) {
-				notifyFailed(e);
-			}
+			doStart();
 			log.info("started service[" + getName() + "]");
 		}
 	}
@@ -61,22 +56,10 @@ public abstract class AbstractService implements Service {
 	public final void stop() {
 		if (STATE_UPDATE.compareAndSet(this, State.START, State.STOP)) {
 			log.info("will stop service[" + getName() + "]");
-			try {
-				doStop();
-			} catch (Exception e) {
-				notifyFailed(e);
-			}
+			doStop();
 			log.info("stoped service[" + getName() + "]");
 		}
 	}
 
 	protected abstract void doStop();
-
-	public void addListener(Listener listener, Executor executor) {
-
-	}
-
-	protected final void notifyFailed(Exception cause) {
-
-	}
 }

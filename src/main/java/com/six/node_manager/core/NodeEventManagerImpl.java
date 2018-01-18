@@ -26,12 +26,12 @@ public class NodeEventManagerImpl extends AbstractService implements NodeEventMa
 
 	private static final Logger log = LoggerFactory.getLogger(NodeEventManagerImpl.class);
 
-	private Map<NodeEventType, Set<NodeEventListen>> nodeEventListens = new ConcurrentHashMap<>();
-	private final LinkedBlockingQueue<NodeEvent> eventQueue = new LinkedBlockingQueue<NodeEvent>();
 	private static final NodeEvent END_NODE_EVENT = new NodeEvent(null, null);
 	private static final int DEFAULT_MAX_EVENT_QUEUE_SIZE = 10000;
 	private int maxEventQueueSize;
 	private Thread processEventQueueThread;
+	private Map<NodeEventType, Set<NodeEventListen>> nodeEventListens;
+	private LinkedBlockingQueue<NodeEvent> eventQueue;
 
 	public NodeEventManagerImpl() {
 		this(DEFAULT_MAX_EVENT_QUEUE_SIZE);
@@ -43,6 +43,8 @@ public class NodeEventManagerImpl extends AbstractService implements NodeEventMa
 		processEventQueueThread = new Thread(() -> {
 			processEventQueue();
 		}, "NodeEventManager-processEventQueue-Thread");
+		nodeEventListens = new ConcurrentHashMap<>();
+		eventQueue = new LinkedBlockingQueue<NodeEvent>();
 	}
 
 	@Override
@@ -81,7 +83,7 @@ public class NodeEventManagerImpl extends AbstractService implements NodeEventMa
 	private void processEventQueue() {
 		NodeEvent event = null;
 		Set<NodeEventListen> nodeEventListenSet = null;
-		log.info("start to run " + getName() + " service's process Event Queue's thread");
+		log.info("start " + getName() + " service's process Event Queue's thread");
 		while (isRunning()) {
 			try {
 				event = this.eventQueue.take();

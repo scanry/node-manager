@@ -1,4 +1,4 @@
-package com.six.node_manager.protocol;
+package com.six.node_manager.discovery;
 
 import com.six.node_manager.NodeInfo;
 
@@ -8,7 +8,7 @@ import com.six.node_manager.NodeInfo;
  * @email 359852326@qq.com
  * @Description 节点间通信协议
  */
-public interface NodeProtocol {
+public interface NodeDiscoveryProtocol {
 	/**
 	 * 返回接收到消息的时间
 	 * 
@@ -29,13 +29,6 @@ public interface NodeProtocol {
 	 * @return
 	 */
 	String getClusterName();
-
-	/**
-	 * 接收master提议
-	 * 
-	 * @param nodeInfo
-	 */
-	void receiveMasterProposal(NodeInfo nodeInfo);
 
 	/**
 	 * 获取节点上的master

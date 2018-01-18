@@ -1,4 +1,4 @@
-package com.six.node_manager.protocol;
+package com.six.node_manager.discovery;
 
 import com.six.node_manager.NodeInfo;
 
@@ -8,7 +8,7 @@ import com.six.node_manager.NodeInfo;
  * @email 359852326@qq.com
  * @Description 主节点通信协议
  */
-public interface MasterNodeProtocol extends NodeProtocol{
+public interface MasterNodeDiscoveryProtocol extends NodeDiscoveryProtocol{
 
 	void join(NodeInfo slaveNodeInfo);
 

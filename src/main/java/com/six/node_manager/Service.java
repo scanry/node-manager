@@ -1,7 +1,5 @@
 package com.six.node_manager;
 
-import java.util.concurrent.Executor;
-
 /**
  * @author sixliu
  * @date 2018年1月17日
@@ -48,14 +46,4 @@ public interface Service {
 	 */
 	void stop();
 	
-	void addListener(Listener listener, Executor executor);
-
-	interface Listener {
-		
-		void starting(State from);
-
-		void stopping(State from);
-
-		void failed(State from, Exception failure);
-	}
 }

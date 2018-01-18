@@ -17,10 +17,13 @@ public class NodeManagerTest {
 		builder.setPort(8888);
 		NodeManager nodeManager = builder.build();
 		nodeManager.getNodeEventManager().registerNodeEventListen(NodeEventType.INIT_BECAOME_MASTER, node -> {
-
+			System.out.println("listen event:" + node);
 		});
 		nodeManager.start();
-
+		try {
+			Thread.sleep(1111111111);
+		} catch (InterruptedException e) {
+		}
 		nodeManager.stop();
 	}
 

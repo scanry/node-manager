@@ -9,10 +9,7 @@ import com.six.node_manager.NodeDiscovery;
 import com.six.node_manager.NodeEventManager;
 import com.six.node_manager.NodeInfo;
 import com.six.node_manager.NodeProtocolManager;
-import com.six.node_manager.discovery.RpcNodeDiscovery;
-import com.six.node_manager.protocol.MasterNodeProtocol;
-import com.six.node_manager.protocol.impl.MasterNodeProtocolImpl;
-
+import com.six.node_manager.discovery.rpc.RpcNodeDiscovery;
 
 /**
  * @author sixliu
@@ -28,7 +25,9 @@ public class ClusterNodeManager extends AbstractNodeManager {
 
 	public ClusterNodeManager(NodeInfo localNodeInfo, List<NodeInfo> needDiscoveryNodeInfos) {
 		this.nodeEventManager = new NodeEventManagerImpl();
-		this.nodeDiscovery = new RpcNodeDiscovery(localNodeInfo, null, this);
+		this.nodeProtocolManager = new NodeProtocolManagerImpl(localNodeInfo.getHost(), localNodeInfo.getPort());
+		this.nodeDiscovery = new RpcNodeDiscovery(localNodeInfo, null, nodeProtocolManager, nodeEventManager, 1000, 3,
+				1000);
 	}
 
 	@Override
@@ -58,8 +57,7 @@ public class ClusterNodeManager extends AbstractNodeManager {
 
 	@Override
 	public NodeProtocolManager getNodeProtocolManager() {
-		// TODO Auto-generated method stub
-		return null;
+		return nodeProtocolManager;
 	}
 
 	@Override
@@ -82,16 +80,16 @@ public class ClusterNodeManager extends AbstractNodeManager {
 
 	@Override
 	protected void doStart() {
+		nodeEventManager.start();
 		nodeProtocolManager.start();
-		nodeProtocolManager.registerNodeRpcProtocol(MasterNodeProtocol.class, new MasterNodeProtocolImpl());
 		nodeDiscovery.start();
 	}
 
 	@Override
 	protected void doStop() {
-		MasterNodeProtocol masterNodeProtocol = nodeProtocolManager
-				.lookupNodeRpcProtocol(nodeDiscovery.getMasterNodeInfo(), MasterNodeProtocol.class);
-		masterNodeProtocol.leave(nodeDiscovery.getLocalNodeInfo());
+		if (null != nodeDiscovery) {
+			nodeDiscovery.stop();
+		}
 		if (null != nodeProtocolManager) {
 			nodeProtocolManager.stop();
 		}

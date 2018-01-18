@@ -26,7 +26,18 @@ public class NodeInfo implements Serializable {
 
 	@Override
 	public String toString() {
-		return "{clusterName=" + clusterName + ", name=" + name + ", host=" + host + ", port=" + port
-				+ ", state=" + state + ", version=" + version + "}";
+		return "{clusterName=" + clusterName + ", name=" + name + ", host=" + host + ", port=" + port + ", state="
+				+ state + ", version=" + version + "}";
+	}
+
+	public NodeInfo copy() {
+		NodeInfo copy = new NodeInfo();
+		copy.clusterName = this.clusterName;
+		copy.name = this.name;
+		copy.host = this.host;
+		copy.port = this.port;
+		copy.state = this.state;
+		copy.version = this.version;
+		return copy;
 	}
 }
