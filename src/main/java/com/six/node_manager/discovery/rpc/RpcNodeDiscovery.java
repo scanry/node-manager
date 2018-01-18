@@ -115,8 +115,10 @@ public class RpcNodeDiscovery extends AbstractNodeDiscovery {
 	}
 
 	@Override
-	protected void doHeartbeat() {
-
+	protected void doHeartbeat(NodeInfo masterNodeInfo, NodeInfo localNodeInfo) {
+		RpcNodeDiscoveryProtocol rpcNodeDiscoveryProtocol = getNodeProtocolManager()
+				.lookupNodeRpcProtocol(masterNodeInfo, RpcNodeDiscoveryProtocol.class, null);
+		rpcNodeDiscoveryProtocol.heartbeat(localNodeInfo);
 	}
 
 	class RpcNodeDiscoveryProtocolImpl implements RpcNodeDiscoveryProtocol {
@@ -126,6 +128,11 @@ public class RpcNodeDiscovery extends AbstractNodeDiscovery {
 			if (null != masterProposal) {
 				masterProposalQueue.add(masterProposal);
 			}
+		}
+
+		@Override
+		public void heartbeat(NodeInfo nodeInfo) {
+			refreshJoinNode(nodeInfo);
 		}
 
 	}

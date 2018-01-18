@@ -129,6 +129,14 @@ public abstract class AbstractNodeDiscovery extends AbstractService implements N
 			log.warn("the join's node is null");
 		}
 	}
+	
+	protected final void refreshJoinNode(NodeInfo slaveNodeInfo) {
+		if (null != slaveNodeInfo) {
+			slaveNodeInfos.put(slaveNodeInfo.getName(), slaveNodeInfo);
+		} else {
+			log.warn("the join's node is null");
+		}
+	}
 
 	@Override
 	public final void leave(NodeInfo slaveNodeInfo) {
@@ -200,14 +208,16 @@ public abstract class AbstractNodeDiscovery extends AbstractService implements N
 	protected final void heartbeat() {
 		int heartbeatErrCount = 0;
 		while (isRunning()) {
-			try {
-				doHeartbeat();
-			} catch (Exception e) {
-				heartbeatErrCount++;
-				if (heartbeatErrCount >= allowHeartbeatErrCount) {
-					localNode.looking();
-					synchronized (electionMonitor) {
-						electionMonitor.notifyAll();
+			if (null != masterNodeInfo) {
+				try {
+					doHeartbeat(masterNodeInfo,localNodeInfo);
+				} catch (Exception e) {
+					heartbeatErrCount++;
+					if (heartbeatErrCount >= allowHeartbeatErrCount) {
+						localNode.looking();
+						synchronized (electionMonitor) {
+							electionMonitor.notifyAll();
+						}
 					}
 				}
 			}
@@ -218,7 +228,7 @@ public abstract class AbstractNodeDiscovery extends AbstractService implements N
 		}
 	}
 
-	protected abstract void doHeartbeat();
+	protected abstract void doHeartbeat(NodeInfo masterNodeInfo,NodeInfo localNodeInfo);
 
 	protected abstract void close();
 

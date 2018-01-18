@@ -1,5 +1,6 @@
 package com.six.node_manager.discovery.rpc;
 
+import com.six.node_manager.NodeInfo;
 
 /**   
  * @author sixliu   
@@ -10,5 +11,7 @@ package com.six.node_manager.discovery.rpc;
 public interface RpcNodeDiscoveryProtocol {
 
 	void sendMasterProposal(MasterProposal masterProposal);
+	
+	void heartbeat(NodeInfo nodeInfo);
 }
 

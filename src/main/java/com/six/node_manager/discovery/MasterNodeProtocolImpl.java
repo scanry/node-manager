@@ -1,5 +1,6 @@
 package com.six.node_manager.discovery;
 
+import com.six.node_manager.NodeDiscovery;
 import com.six.node_manager.NodeInfo;
 
 /**
@@ -10,18 +11,18 @@ import com.six.node_manager.NodeInfo;
  */
 public class MasterNodeProtocolImpl extends AbstactNodeProtocol implements MasterNodeDiscoveryProtocol {
 
-	public MasterNodeProtocolImpl(AbstractNodeDiscovery abstractNodeDiscovery) {
-		super(abstractNodeDiscovery);
+	public MasterNodeProtocolImpl(NodeDiscovery nodeDiscovery) {
+		super(nodeDiscovery);
 	}
 
 	@Override
 	public void join(NodeInfo slaveNodeInfo) {
-		getAbstractNodeDiscovery().join(slaveNodeInfo);
+		getNodeDiscovery().join(slaveNodeInfo);
 	}
 
 	@Override
 	public void leave(NodeInfo slaveNodeInfo) {
-		getAbstractNodeDiscovery().leave(slaveNodeInfo);
+		getNodeDiscovery().leave(slaveNodeInfo);
 	}
 
 }

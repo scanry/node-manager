@@ -1,5 +1,7 @@
 package com.six.node_manager.discovery;
 
+import com.six.node_manager.NodeDiscovery;
+
 /**
  * @author sixliu
  * @date 2018年1月12日
@@ -8,8 +10,8 @@ package com.six.node_manager.discovery;
  */
 public class SlaveNodeProtocolImpl extends AbstactNodeProtocol implements SlaveNodeDiscoveryProtocol {
 
-	public SlaveNodeProtocolImpl(AbstractNodeDiscovery abstractNodeDiscovery) {
-		super(abstractNodeDiscovery);
+	public SlaveNodeProtocolImpl(NodeDiscovery nodeDiscovery) {
+		super(nodeDiscovery);
 	}
 
 }

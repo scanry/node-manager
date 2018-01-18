@@ -2,6 +2,7 @@ package com.six.node_manager.discovery;
 
 import java.util.Objects;
 
+import com.six.node_manager.NodeDiscovery;
 import com.six.node_manager.NodeInfo;
 
 /**
@@ -12,11 +13,11 @@ import com.six.node_manager.NodeInfo;
  */
 public abstract class AbstactNodeProtocol implements NodeDiscoveryProtocol {
 
-	private AbstractNodeDiscovery abstractNodeDiscovery;
+	private NodeDiscovery nodeDiscovery;
 
-	public AbstactNodeProtocol(AbstractNodeDiscovery abstractNodeDiscovery) {
-		Objects.requireNonNull(abstractNodeDiscovery);
-		this.abstractNodeDiscovery = abstractNodeDiscovery;
+	public AbstactNodeProtocol(NodeDiscovery nodeDiscovery) {
+		Objects.requireNonNull(nodeDiscovery);
+		this.nodeDiscovery = nodeDiscovery;
 	}
 
 	@Override
@@ -26,26 +27,26 @@ public abstract class AbstactNodeProtocol implements NodeDiscoveryProtocol {
 
 	@Override
 	public String getNodeName() {
-		return abstractNodeDiscovery.getLocalNodeInfo().getName();
+		return nodeDiscovery.getLocalNodeInfo().getName();
 	}
 
 	@Override
 	public String getClusterName() {
-		return abstractNodeDiscovery.getLocalNodeInfo().getClusterName();
+		return nodeDiscovery.getLocalNodeInfo().getClusterName();
 	}
 
 	@Override
 	public NodeInfo getMasterNode() {
-		return abstractNodeDiscovery.getMasterNodeInfo();
+		return nodeDiscovery.getMasterNodeInfo();
 	}
 
 	@Override
 	public NodeInfo getNewestLocalNode() {
-		return abstractNodeDiscovery.getLocalNodeInfo();
+		return nodeDiscovery.getLocalNodeInfo();
 	}
 
-	protected AbstractNodeDiscovery getAbstractNodeDiscovery() {
-		return abstractNodeDiscovery;
+	protected NodeDiscovery getNodeDiscovery() {
+		return nodeDiscovery;
 	}
 
 }
