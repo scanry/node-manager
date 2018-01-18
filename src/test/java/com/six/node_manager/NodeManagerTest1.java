@@ -6,7 +6,7 @@ package com.six.node_manager;
  * @email 359852326@qq.com
  * @Description
  */
-public class NodeManagerTest {
+public class NodeManagerTest1 {
 
 	public static void main(String[] args) {
 		NodeManagerBuilder builder = new NodeManagerBuilder();
@@ -14,7 +14,9 @@ public class NodeManagerTest {
 		builder.setClusterName("cluster");
 		builder.setNodeName("node1");
 		builder.setHost("127.0.0.1");
-		builder.setPort(8888);
+		builder.setPort(8881);
+		String discoveryNodes = "127.0.0.1:8881;127.0.0.1:8882;127.0.0.1:8883";
+		builder.setDiscoveryNodes(discoveryNodes);
 		NodeManager nodeManager = builder.build();
 		nodeManager.getNodeEventManager().registerNodeEventListen(NodeEventType.INIT_BECAOME_MASTER, node -> {
 			System.out.println("listen event:" + node);

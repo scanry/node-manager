@@ -1,6 +1,7 @@
 package com.six.node_manager.core;
 
 import java.util.List;
+import java.util.Set;
 
 import com.six.node_manager.Cache;
 import com.six.node_manager.FileSystem;
@@ -23,10 +24,10 @@ public class ClusterNodeManager extends AbstractNodeManager {
 	private NodeEventManager nodeEventManager;
 	private NodeProtocolManager nodeProtocolManager;
 
-	public ClusterNodeManager(NodeInfo localNodeInfo, List<NodeInfo> needDiscoveryNodeInfos) {
+	public ClusterNodeManager(NodeInfo localNodeInfo, Set<NodeInfo> needDiscoveryNodeInfos) {
 		this.nodeEventManager = new NodeEventManagerImpl();
 		this.nodeProtocolManager = new NodeProtocolManagerImpl(localNodeInfo.getHost(), localNodeInfo.getPort());
-		this.nodeDiscovery = new RpcNodeDiscovery(localNodeInfo, null, nodeProtocolManager, nodeEventManager, 1000, 3,
+		this.nodeDiscovery = new RpcNodeDiscovery(localNodeInfo, needDiscoveryNodeInfos, nodeProtocolManager, nodeEventManager, 1000, 3,
 				1000);
 	}
 

@@ -25,6 +25,41 @@ public class NodeInfo implements Serializable {
 	private long version;
 
 	@Override
+	public int hashCode() {
+		int hashCode = 0;
+		if (null != clusterName) {
+			hashCode += clusterName.hashCode();
+		}
+		if (null != name) {
+			hashCode += name.hashCode();
+		}
+		if (null != host) {
+			hashCode += host.hashCode();
+		}
+		if (0 != port) {
+			hashCode += String.valueOf(port).hashCode();
+		}
+		return hashCode;
+	}
+
+	@Override
+	public boolean equals(Object ob) {
+		if (null != ob && ob instanceof NodeInfo) {
+			NodeInfo target = (NodeInfo) ob;
+			return equals(clusterName, target.clusterName) && equals(name, target.name) && equals(host, target.host)
+					&& port == target.port;
+		}
+		return false;
+	}
+
+	private static boolean equals(String value1, String value2) {
+		if (null != value1 && value1.equals(value2)) {
+			return true;
+		}
+		return false;
+	}
+
+	@Override
 	public String toString() {
 		return "{clusterName=" + clusterName + ", name=" + name + ", host=" + host + ", port=" + port + ", state="
 				+ state + ", version=" + version + "}";

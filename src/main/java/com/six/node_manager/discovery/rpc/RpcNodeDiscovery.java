@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -16,6 +17,7 @@ import com.six.node_manager.NodeEventManager;
 import com.six.node_manager.NodeInfo;
 import com.six.node_manager.NodeProtocolManager;
 import com.six.node_manager.discovery.AbstractNodeDiscovery;
+import com.six.node_manager.discovery.SlaveNodeDiscoveryProtocol;
 
 /**
  * @author sixliu
@@ -29,9 +31,10 @@ public class RpcNodeDiscovery extends AbstractNodeDiscovery {
 
 	private LinkedBlockingQueue<MasterProposal> masterProposalQueue = new LinkedBlockingQueue<>();
 	private MasterProposal currentMasterProposal;
-	private AtomicInteger logicClock;
+	private AtomicInteger logicClock = new AtomicInteger(0);
+	private final static int maxNotificationInterval = 60000;
 
-	public RpcNodeDiscovery(NodeInfo localNodeInfo, List<NodeInfo> needDiscoveryNodeInfos,
+	public RpcNodeDiscovery(NodeInfo localNodeInfo, Set<NodeInfo> needDiscoveryNodeInfos,
 			NodeProtocolManager nodeProtocolManager, NodeEventManager nodeEventManager, long heartbeatInterval,
 			int allowHeartbeatErrCount, long electionInterval) {
 		super(localNodeInfo, needDiscoveryNodeInfos, nodeProtocolManager, nodeEventManager, heartbeatInterval,
@@ -52,13 +55,19 @@ public class RpcNodeDiscovery extends AbstractNodeDiscovery {
 			Map<NodeInfo, Set<String>> masterProposalScoreMap = new HashMap<>();
 			int winSize = needDiscoveryNodeInfos.size() / 2 + 1;
 			MasterProposal masterProposal = null;
+			long notTimeout = 3000;
 			while (null == won) {
 				try {
-					masterProposal = masterProposalQueue.poll(1, TimeUnit.SECONDS);
+					masterProposal = masterProposalQueue.poll(notTimeout, TimeUnit.MILLISECONDS);
 				} catch (InterruptedException e) {
 				}
 				if (null == masterProposal) {
-					sendMasterProposal(needDiscoveryNodeInfos, proposer, defaultMasterNode);
+					if (allPingSuccessed(needDiscoveryNodeInfos)) {
+						sendMasterProposal(needDiscoveryNodeInfos, proposer, defaultMasterNode);
+					}
+					long tmpTimeOut = notTimeout * 2;
+					notTimeout = (tmpTimeOut < maxNotificationInterval ? tmpTimeOut : maxNotificationInterval);
+					log.info("Notification time out: " + notTimeout);
 				} else {
 					if (masterProposal.getLogicClock() < currentMasterProposal.getLogicClock()) {
 						log.warn("the MasterProposal{" + masterProposal.toString() + "}'s logicClock["
@@ -85,6 +94,31 @@ public class RpcNodeDiscovery extends AbstractNodeDiscovery {
 		return won;
 	}
 
+	private boolean allPingSuccessed(List<NodeInfo> needDiscoveryNodeInfos) {
+		SlaveNodeDiscoveryProtocol slaveNodeDiscoveryProtocol = null;
+		final AtomicInteger successCount = new AtomicInteger(0);
+		CountDownLatch cdl = new CountDownLatch(needDiscoveryNodeInfos.size());
+		for (NodeInfo nodeInfo : needDiscoveryNodeInfos) {
+			try {
+				slaveNodeDiscoveryProtocol = getNodeProtocolManager().lookupNodeRpcProtocol(nodeInfo,
+						SlaveNodeDiscoveryProtocol.class, result -> {
+							if (result.isSuccessed()) {
+								successCount.incrementAndGet();
+							}
+							cdl.countDown();
+						});
+				slaveNodeDiscoveryProtocol.ping();
+			}catch (Exception e) {
+				log.error("rpc rpcNodeDiscoveryProtocol.sendMasterProposal exception", e);
+			}
+		}
+		try {
+			cdl.await();
+		} catch (InterruptedException e) {
+		}
+		return successCount.get() == needDiscoveryNodeInfos.size();
+	}
+
 	private void sendMasterProposal(List<NodeInfo> needDiscoveryNodeInfos, NodeInfo proposer, NodeInfo master) {
 		RpcNodeDiscoveryProtocol rpcNodeDiscoveryProtocol = null;
 		MasterProposal masterProposal = new MasterProposal();
@@ -93,9 +127,19 @@ public class RpcNodeDiscovery extends AbstractNodeDiscovery {
 		masterProposal.setLogicClock(logicClock.getAndIncrement());
 		this.currentMasterProposal = masterProposal;
 		for (NodeInfo nodeInfo : needDiscoveryNodeInfos) {
-			rpcNodeDiscoveryProtocol = getNodeProtocolManager().lookupNodeRpcProtocol(nodeInfo,
-					RpcNodeDiscoveryProtocol.class, null);
-			rpcNodeDiscoveryProtocol.sendMasterProposal(masterProposal);
+			try {
+				rpcNodeDiscoveryProtocol = getNodeProtocolManager().lookupNodeRpcProtocol(nodeInfo,
+						RpcNodeDiscoveryProtocol.class, result -> {
+							if(result.isSuccessed()) {
+								log.info("rpc rpcNodeDiscoveryProtocol.sendMasterProposal successed");
+							}else {
+								log.warn("rpc rpcNodeDiscoveryProtocol.sendMasterProposal["+nodeInfo+"] failed");
+							}
+						});
+				rpcNodeDiscoveryProtocol.sendMasterProposal(masterProposal);
+			}catch (Exception e) {
+				log.error("rpc rpcNodeDiscoveryProtocol.sendMasterProposal exception", e);
+			}
 		}
 	}
 

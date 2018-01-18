@@ -1,5 +1,8 @@
 package com.six.node_manager;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import com.six.node_manager.core.ClusterNodeManager;
 import com.six.node_manager.core.StandAloneNodeManager;
 
@@ -35,9 +38,34 @@ public class NodeManagerBuilder {
 	public NodeManager build() {
 		NodeInfo localNodeInfo = buildLocalNodeInfo();
 		if (clusterEnable) {
-			return new ClusterNodeManager(localNodeInfo, null);
+			Set<NodeInfo> needDiscoveryNodeInfos = paserNeedDiscoveryNodeInfos(discoveryNodes, localNodeInfo);
+			return new ClusterNodeManager(localNodeInfo, needDiscoveryNodeInfos);
 		} else {
 			return new StandAloneNodeManager();
 		}
+	}
+
+	private static Set<NodeInfo> paserNeedDiscoveryNodeInfos(String discoveryNodes, NodeInfo localNodeInfo) {
+		Set<NodeInfo> needDiscoveryNodeInfos = null;
+		if (null != discoveryNodes && discoveryNodes.trim().length() > 0) {
+			String[] discoveryNodesArray = discoveryNodes.split(";");
+			needDiscoveryNodeInfos = new HashSet<>(discoveryNodesArray.length);
+			String[] discoveryNodeArray = null;
+			NodeInfo nodeInfo = null;
+			for (String discoveryNodeStr : discoveryNodesArray) {
+				discoveryNodeArray = discoveryNodeStr.split(":");
+				if (!(localNodeInfo.getHost().equals(discoveryNodeArray[0])
+						&& localNodeInfo.getPort() == Integer.valueOf(discoveryNodeArray[1]))) {
+					nodeInfo = new NodeInfo();
+					nodeInfo.setHost(discoveryNodeArray[0]);
+					nodeInfo.setPort(Integer.valueOf(discoveryNodeArray[1]));
+					needDiscoveryNodeInfos.add(nodeInfo);
+				}
+			}
+		} else {
+			needDiscoveryNodeInfos = new HashSet<>(1);
+		}
+		needDiscoveryNodeInfos.add(localNodeInfo);
+		return needDiscoveryNodeInfos;
 	}
 }

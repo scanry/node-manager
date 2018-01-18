@@ -2,9 +2,11 @@ package com.six.node_manager.discovery;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
@@ -33,7 +35,7 @@ public abstract class AbstractNodeDiscovery extends AbstractService implements N
 
 	protected Node localNode;
 	private NodeInfo localNodeInfo;
-	private List<NodeInfo> needDiscoveryNodeInfos;
+	private Set<NodeInfo> needDiscoveryNodeInfos;
 	private volatile NodeInfo masterNodeInfo;
 	private Map<String, NodeInfo> slaveNodeInfos = new ConcurrentHashMap<>();
 	private NodeProtocolManager nodeProtocolManager;
@@ -47,7 +49,7 @@ public abstract class AbstractNodeDiscovery extends AbstractService implements N
 	private MasterNodeDiscoveryProtocol masterNodeDiscoveryProtocol;
 	private SlaveNodeDiscoveryProtocol slaveNodeDiscoveryProtocol;
 
-	public AbstractNodeDiscovery(NodeInfo localNodeInfo, List<NodeInfo> needDiscoveryNodeInfos,
+	public AbstractNodeDiscovery(NodeInfo localNodeInfo, Set<NodeInfo> needDiscoveryNodeInfos,
 			NodeProtocolManager nodeProtocolManager, NodeEventManager nodeEventManager, long heartbeatInterval,
 			int allowHeartbeatErrCount, long electionInterval) {
 		super("nodeDiscovery");
@@ -56,12 +58,12 @@ public abstract class AbstractNodeDiscovery extends AbstractService implements N
 		Objects.requireNonNull(nodeEventManager);
 		this.localNodeInfo = localNodeInfo.copy();
 		if (null != needDiscoveryNodeInfos) {
-			this.needDiscoveryNodeInfos = new ArrayList<>(needDiscoveryNodeInfos.size());
+			this.needDiscoveryNodeInfos = new HashSet<>(needDiscoveryNodeInfos.size());
 			for (NodeInfo needDiscoveryNodeInfo : needDiscoveryNodeInfos) {
 				this.needDiscoveryNodeInfos.add(needDiscoveryNodeInfo.copy());
 			}
 		} else {
-			this.needDiscoveryNodeInfos = Collections.emptyList();
+			this.needDiscoveryNodeInfos = Collections.emptySet();
 		}
 		this.localNode = new Node(localNodeInfo.getClusterName(), localNodeInfo.getName(), localNodeInfo.getHost(),
 				localNodeInfo.getPort(), localNodeInfo.getVersion());
@@ -164,13 +166,17 @@ public abstract class AbstractNodeDiscovery extends AbstractService implements N
 	private void election() {
 		synchronized (electionMonitor) {
 			while (isRunning()) {
-				try {
-					NodeInfo master = null;
+				NodeInfo master = null;
+				try {		
 					do {
-						master = doElection();
-						if (null == master) {
-							Thread.sleep(electionInterval);
-						}
+						try {
+							master = doElection();
+							if (null == master) {
+								Thread.sleep(electionInterval);
+							}
+						}catch (Exception e) {
+							log.error("nodeDiscovery do election exception", e);
+						}				
 					} while (null == master);
 					NodeInfo localNodeInfo = getLocalNodeInfo();
 					if (!localNodeInfo.equals(master)) {
