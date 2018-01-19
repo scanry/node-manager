@@ -28,7 +28,7 @@ public class RpcNodeDiscovery extends AbstractNodeDiscovery {
 
 	private static Logger log = LoggerFactory.getLogger(RpcNodeDiscovery.class);
 
-	private LinkedBlockingQueue<MasterProposal> masterProposalQueue = new LinkedBlockingQueue<>();
+	private LinkedBlockingQueue<MasterProposal> revMasterProposalQueue = new LinkedBlockingQueue<>();
 	private Map<String, NodeInfo> needDiscoveryNodeInfos;
 	private MasterProposal currentMasterProposal;
 	private AtomicInteger logicClock = new AtomicInteger(0);
@@ -70,25 +70,6 @@ public class RpcNodeDiscovery extends AbstractNodeDiscovery {
 	}
 
 	@Override
-	protected NodeInfo askWhoIsMaster() {
-		NodeInfo askWhoIsMaster = null;
-		SlaveNodeDiscoveryProtocol slaveNodeDiscoveryProtocol = null;
-		for (NodeInfo nodeInfo : needDiscoveryNodeInfos.values()) {
-			try {
-				slaveNodeDiscoveryProtocol = getNodeProtocolManager().lookupNodeRpcProtocol(nodeInfo,
-						SlaveNodeDiscoveryProtocol.class);
-				askWhoIsMaster = slaveNodeDiscoveryProtocol.getMasterNode();
-				if (null != askWhoIsMaster) {
-					return askWhoIsMaster;
-				}
-			} catch (Exception e) {
-				log.error("rpc rpcNodeDiscoveryProtocol.askWhoIsMaster exception", e);
-			}
-		}
-		return askWhoIsMaster;
-	}
-
-	@Override
 	protected NodeInfo doElection() {
 		NodeInfo won = null;
 		if (null == needDiscoveryNodeInfos || needDiscoveryNodeInfos.isEmpty()) {
@@ -106,7 +87,7 @@ public class RpcNodeDiscovery extends AbstractNodeDiscovery {
 			long notTimeout = finalizeWait;
 			while (null == won) {
 				try {
-					masterProposal = masterProposalQueue.poll(notTimeout, TimeUnit.MILLISECONDS);
+					masterProposal = revMasterProposalQueue.poll(notTimeout, TimeUnit.MILLISECONDS);
 				} catch (InterruptedException e) {
 				}
 				if (null == masterProposal) {
@@ -141,10 +122,10 @@ public class RpcNodeDiscovery extends AbstractNodeDiscovery {
 						masterProposalScoreMap.put(masterProposal.getProposer(), masterProposal.getNode());
 						if (isWon(masterProposalScoreMap, currentMasterProposal, winSize)) {
 							try {
-								while ((masterProposal = masterProposalQueue.poll(finalizeWait,
+								while ((masterProposal = revMasterProposalQueue.poll(finalizeWait,
 										TimeUnit.MILLISECONDS)) != null) {
 									if (isWon(masterProposal, currentMasterProposal)) {
-										masterProposalQueue.put(masterProposal);
+										revMasterProposalQueue.put(masterProposal);
 										break;
 									}
 								}
@@ -153,7 +134,7 @@ public class RpcNodeDiscovery extends AbstractNodeDiscovery {
 							}
 							if (masterProposal == null) {
 								won = currentMasterProposal.getNode();
-								masterProposalQueue.clear();
+								revMasterProposalQueue.clear();
 								return won;
 							}
 						}
@@ -166,7 +147,7 @@ public class RpcNodeDiscovery extends AbstractNodeDiscovery {
 							if (isWon(masterProposalScoreMap, masterProposal, winSize)
 									&& checkMaster(outofelection, masterProposal, masterProposal.getLogicClock())) {
 								won = masterProposal.getNode();
-								masterProposalQueue.clear();
+								revMasterProposalQueue.clear();
 								return won;
 							}
 						}
@@ -177,7 +158,7 @@ public class RpcNodeDiscovery extends AbstractNodeDiscovery {
 								logicClock.set(masterProposal.getLogicClock());
 							}
 							won = masterProposal.getNode();
-							masterProposalQueue.clear();
+							revMasterProposalQueue.clear();
 							return won;
 						}
 						break;
@@ -268,6 +249,9 @@ public class RpcNodeDiscovery extends AbstractNodeDiscovery {
 						RpcNodeDiscoveryProtocol.class, result -> {
 							if (result.isSuccessed()) {
 								log.info("rpc rpcNodeDiscoveryProtocol.sendMasterProposal[" + nodeInfo + "]successed");
+								if (null != result.getResult()) {
+									revMasterProposalQueue.add((MasterProposal) result.getResult());
+								}
 							} else {
 								log.warn("rpc rpcNodeDiscoveryProtocol.sendMasterProposal[" + nodeInfo + "] failed");
 							}
@@ -319,10 +303,15 @@ public class RpcNodeDiscovery extends AbstractNodeDiscovery {
 		}
 
 		@Override
-		public void sendMasterProposal(MasterProposal masterProposal) {
+		public MasterProposal sendMasterProposal(MasterProposal masterProposal) {
 			if (null != masterProposal) {
-				masterProposalQueue.add(masterProposal);
+				if (NodeState.LOOKING == getNodeState()) {
+					revMasterProposalQueue.add(masterProposal);
+				} else {
+					return currentMasterProposal;
+				}
 			}
+			return null;
 		}
 
 		@Override

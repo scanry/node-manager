@@ -15,7 +15,7 @@ public class NodeManagerTest3 {
 		builder.setClusterName("cluster");
 		builder.setNodeName("node3");
 		builder.setHost("127.0.0.1");
-		builder.setPort(8882);
+		builder.setPort(8883);
 		String discoveryNodes = "node1@127.0.0.1:8881;node2@127.0.0.1:8882;node3@127.0.0.1:8883";
 		builder.setDiscoveryNodes(discoveryNodes);
 		NodeManager nodeManager = builder.build();

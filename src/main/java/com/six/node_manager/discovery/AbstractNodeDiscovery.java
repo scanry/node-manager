@@ -108,6 +108,11 @@ public abstract class AbstractNodeDiscovery extends AbstractService implements N
 	}
 
 	@Override
+	public final NodeState getNodeState() {
+		return localNode.state;
+	}
+
+	@Override
 	public final NodeInfo getLocalNodeInfo() {
 		return localNode.NodeInfo();
 	}
@@ -186,10 +191,7 @@ public abstract class AbstractNodeDiscovery extends AbstractService implements N
 			switch (localNode.getState()) {
 			case LOOKING:
 				try {
-					NodeInfo master = askWhoIsMaster();
-					if (null == master) {
-						master = doElection();
-					}
+					NodeInfo master = doElection();
 					if (null != master) {
 						master.setState(NodeState.MASTER);
 						if (!getLocalNodeName().equals(master.getName())) {
@@ -199,8 +201,7 @@ public abstract class AbstractNodeDiscovery extends AbstractService implements N
 									.lookupNodeRpcProtocol(master, MasterNodeDiscoveryProtocol.class);
 							NodeInfo localNodeInfo = getLocalNodeInfo();
 							masterNodeProtocol.join(getLocalNodeInfo());
-							nodeEventManager
-									.addNodeEvent(new NodeEvent(NodeEventType.BECAOME_SLAVE, localNodeInfo));
+							nodeEventManager.addNodeEvent(new NodeEvent(NodeEventType.BECAOME_SLAVE, localNodeInfo));
 						} else {
 							localNode.master();
 							NodeInfo initNodeInfo = masterNodeInfo;
@@ -235,8 +236,6 @@ public abstract class AbstractNodeDiscovery extends AbstractService implements N
 		}
 
 	}
-
-	protected abstract NodeInfo askWhoIsMaster();
 
 	protected abstract NodeInfo doElection();
 

@@ -14,6 +14,8 @@ public interface NodeDiscovery extends Service {
 
 	String getLocalNodeName();
 	
+	NodeState getNodeState();
+	
 	NodeInfo getLocalNodeInfo();
 
 	NodeInfo getMasterNodeInfo();

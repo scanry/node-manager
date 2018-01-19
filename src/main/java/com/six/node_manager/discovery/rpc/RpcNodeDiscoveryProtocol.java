@@ -12,7 +12,7 @@ public interface RpcNodeDiscoveryProtocol {
 
 	String getName();
 	
-	void sendMasterProposal(MasterProposal masterProposal);
+	MasterProposal sendMasterProposal(MasterProposal masterProposal);
 	
 	void heartbeat(NodeInfo nodeInfo);
 }
