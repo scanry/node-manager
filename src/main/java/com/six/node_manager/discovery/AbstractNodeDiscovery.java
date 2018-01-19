@@ -299,6 +299,7 @@ public abstract class AbstractNodeDiscovery extends AbstractService implements N
 								.lookupNodeRpcProtocol(item.getNodeInfo(), SlaveNodeDiscoveryProtocol.class, result -> {
 									if (!result.isSuccessed()) {
 										missSlaveNodeInfos.put(item.getNodeInfo().getName(), item);
+										//TODO如果检查有一半从节点异常处理思考
 									}
 								});
 						slaveNodeDiscoveryProtocol.ping();

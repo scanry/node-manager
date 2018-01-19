@@ -17,7 +17,6 @@ import lombok.Data;
 @Data
 public class NodeManagerBuilder {
 
-	private boolean clusterEnable;
 	private String clusterName;
 	private String nodeName;
 	private String host;
@@ -37,12 +36,8 @@ public class NodeManagerBuilder {
 
 	public NodeManager build() {
 		NodeInfo localNodeInfo = buildLocalNodeInfo();
-		if (clusterEnable) {
-			Map<String,NodeInfo> needDiscoveryNodeInfos = paserNeedDiscoveryNodeInfos(discoveryNodes, localNodeInfo);
-			return new ClusterNodeManager(localNodeInfo, needDiscoveryNodeInfos);
-		} else {
-			return new StandAloneNodeManager();
-		}
+		Map<String,NodeInfo> needDiscoveryNodeInfos = paserNeedDiscoveryNodeInfos(discoveryNodes, localNodeInfo);
+		return new ClusterNodeManager(localNodeInfo, needDiscoveryNodeInfos);
 	}
 
 	// name@127.0.0.1:8881
