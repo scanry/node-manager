@@ -1,6 +1,6 @@
 package com.six.node_manager;
 
-import java.util.List;
+import java.util.Set;
 
 /**
  * @author sixliu
@@ -36,7 +36,7 @@ public interface NodeManager extends Service {
 	 * 
 	 * @return
 	 */
-	List<NodeInfo> getSlaveNods();
+	Set<NodeInfo> getSlaveNods();
 
 	/**
 	 * 获取节点事件管理

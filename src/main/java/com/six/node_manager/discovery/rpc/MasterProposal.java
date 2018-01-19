@@ -1,5 +1,7 @@
 package com.six.node_manager.discovery.rpc;
 
+import java.io.Serializable;
+
 import com.six.node_manager.NodeInfo;
 
 import lombok.Data;
@@ -11,13 +13,17 @@ import lombok.Data;
  * @Description
  */
 @Data
-public class MasterProposal {
+public class MasterProposal implements Serializable{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 112963061081381636L;
 	private int logicClock;
 	private String proposer;
-	private NodeInfo master;
+	private NodeInfo node;
 
 	public String toString() {
-		return "[proposer:" + proposer + ",logicClock:" + logicClock + ",master:" + master.getName() + ",version:"
-				+ master.getVersion() + "]";
+		return "[proposer:" + proposer + ",logicClock:" + logicClock + ",master:" + node.getName() + ",version:"
+				+ node.getVersion() + "]";
 	}
 }

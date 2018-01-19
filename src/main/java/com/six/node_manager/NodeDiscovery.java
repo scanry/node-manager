@@ -1,6 +1,6 @@
 package com.six.node_manager;
 
-import java.util.List;
+import java.util.Set;
 
 /**
  * @author sixliu
@@ -12,13 +12,13 @@ public interface NodeDiscovery extends Service {
 
 	String getClusterName();
 
+	String getLocalNodeName();
+	
 	NodeInfo getLocalNodeInfo();
-
-	List<NodeInfo> getNeedDiscoveryNodeInfos();
 
 	NodeInfo getMasterNodeInfo();
 
-	List<NodeInfo> getSlaveNodInfos();
+	Set<NodeInfo> getSlaveNodInfos();
 	
 	boolean isHealthy();
 

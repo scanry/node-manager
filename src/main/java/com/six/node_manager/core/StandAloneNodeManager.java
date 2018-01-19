@@ -1,6 +1,6 @@
 package com.six.node_manager.core;
 
-import java.util.List;
+import java.util.Set;
 
 import com.six.node_manager.Cache;
 import com.six.node_manager.FileSystem;
@@ -39,7 +39,7 @@ public class StandAloneNodeManager extends AbstractNodeManager implements NodeMa
 	}
 
 	@Override
-	public List<NodeInfo> getSlaveNods() {
+	public Set<NodeInfo> getSlaveNods() {
 		// TODO Auto-generated method stub
 		return null;
 	}

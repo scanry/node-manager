@@ -13,14 +13,24 @@ public class NodeManagerTest2 {
 		NodeManagerBuilder builder = new NodeManagerBuilder();
 		builder.setClusterEnable(true);
 		builder.setClusterName("cluster");
-		builder.setNodeName("node1");
+		builder.setNodeName("node2");
 		builder.setHost("127.0.0.1");
 		builder.setPort(8883);
-		String discoveryNodes = "127.0.0.1:8881;127.0.0.1:8882;127.0.0.1:8883";
+		String discoveryNodes = "node1@127.0.0.1:8881;node2@127.0.0.1:8882;node3@127.0.0.1:8883";
 		builder.setDiscoveryNodes(discoveryNodes);
 		NodeManager nodeManager = builder.build();
 		nodeManager.getNodeEventManager().registerNodeEventListen(NodeEventType.INIT_BECAOME_MASTER, node -> {
-			System.out.println("listen event:" + node);
+			System.out.println("master:" + nodeManager.getMasterNode());
+			System.out.println("我是master:" + System.currentTimeMillis());
+		});
+		nodeManager.getNodeEventManager().registerNodeEventListen(NodeEventType.BECAOME_SLAVE, node -> {
+			System.out.println("master:" + nodeManager.getMasterNode());
+			System.out.println("我是slave:" + System.currentTimeMillis());
+		});
+		nodeManager.getNodeEventManager().registerNodeEventListen(NodeEventType.SLAVE_JOIN, node -> {
+			System.out.println("master:" + nodeManager.getMasterNode());
+			System.out.println("slave join:" + node);
+			System.out.println("slave size:" + nodeManager.getSlaveNods().size());
 		});
 		nodeManager.start();
 		try {

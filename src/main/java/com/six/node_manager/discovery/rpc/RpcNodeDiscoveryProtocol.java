@@ -10,6 +10,8 @@ import com.six.node_manager.NodeInfo;
  */
 public interface RpcNodeDiscoveryProtocol {
 
+	String getName();
+	
 	void sendMasterProposal(MasterProposal masterProposal);
 	
 	void heartbeat(NodeInfo nodeInfo);
