@@ -139,6 +139,9 @@ public abstract class AbstractNodeDiscovery extends AbstractService implements N
 	@Override
 	public final void join(NodeInfo slaveNodeInfo) {
 		if (null != slaveNodeInfo) {
+			if (missSlaveNodeInfos.containsKey(slaveNodeInfo.getName())) {
+				// TODO 丢失后再次join
+			}
 			refreshJoinNode(slaveNodeInfo);
 			nodeEventManager.addNodeEvent(new NodeEvent(NodeEventType.SLAVE_JOIN, slaveNodeInfo));
 		} else {
@@ -299,7 +302,7 @@ public abstract class AbstractNodeDiscovery extends AbstractService implements N
 								.lookupNodeRpcProtocol(item.getNodeInfo(), SlaveNodeDiscoveryProtocol.class, result -> {
 									if (!result.isSuccessed()) {
 										missSlaveNodeInfos.put(item.getNodeInfo().getName(), item);
-										//TODO如果检查有一半从节点异常处理思考
+										// TODO如果检查有一半从节点异常处理思考
 									}
 								});
 						slaveNodeDiscoveryProtocol.ping();
