@@ -1,4 +1,4 @@
-package com.six.node_manager;
+package com.six.node_manager.core;
 
 /**
  * @author sixliu
@@ -34,7 +34,6 @@ public interface Service {
 	State getState();
 	
 	boolean isRunning();
-
 
 	/**
 	 * 启动服务

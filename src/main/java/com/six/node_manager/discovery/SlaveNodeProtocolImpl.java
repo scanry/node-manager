@@ -8,7 +8,8 @@ import com.six.node_manager.NodeDiscovery;
  * @email 359852326@qq.com
  * @Description
  */
-public class SlaveNodeProtocolImpl extends AbstactNodeProtocol implements SlaveNodeDiscoveryProtocol {
+public class SlaveNodeProtocolImpl extends AbstactNodeProtocol
+		implements SlaveNodeDiscoveryProtocol {
 
 	public SlaveNodeProtocolImpl(NodeDiscovery nodeDiscovery) {
 		super(nodeDiscovery);

@@ -2,6 +2,8 @@ package com.six.node_manager;
 
 import java.util.concurrent.ExecutorService;
 
+import com.six.node_manager.core.Service;
+
 import six.com.rpc.AsyCallback;
 
 /**

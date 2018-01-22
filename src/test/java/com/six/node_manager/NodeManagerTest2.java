@@ -17,11 +17,11 @@ public class NodeManagerTest2 {
 		String discoveryNodes = "node1@127.0.0.1:8881;node2@127.0.0.1:8882;node3@127.0.0.1:8883";
 		builder.setDiscoveryNodes(discoveryNodes);
 		NodeManager nodeManager = builder.build();
-		nodeManager.getNodeEventManager().registerNodeEventListen(NodeEventType.INIT_BECAOME_MASTER, node -> {
+		nodeManager.getNodeEventManager().registerNodeEventListen(NodeEventType.INIT_BECOME_MASTER, node -> {
 			System.out.println("master:" + nodeManager.getMasterNode());
 			System.out.println("我是master:" + System.currentTimeMillis());
 		});
-		nodeManager.getNodeEventManager().registerNodeEventListen(NodeEventType.BECAOME_SLAVE, node -> {
+		nodeManager.getNodeEventManager().registerNodeEventListen(NodeEventType.BECOME_SLAVE, node -> {
 			System.out.println("master:" + nodeManager.getMasterNode());
 			System.out.println("我是slave:" + System.currentTimeMillis());
 		});

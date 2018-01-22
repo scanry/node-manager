@@ -8,9 +8,11 @@ package com.six.node_manager;
  */
 public enum NodeEventType {
 	/** 集群初始化启动时成为master **/
-	INIT_BECAOME_MASTER,
+	BECOME_LOOKING,
+	/** 集群初始化启动时成为master **/
+	INIT_BECOME_MASTER,
 	/** 成为slave **/
-	BECAOME_SLAVE,
+	BECOME_SLAVE,
 	/** slave加入 **/
 	SLAVE_JOIN,
 	/** 丢失master **/

@@ -2,6 +2,8 @@ package com.six.node_manager;
 
 import java.util.Set;
 
+import com.six.node_manager.core.Service;
+
 /**
  * @author sixliu
  * @date 2017年12月21日

@@ -11,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.six.node_manager.NodeEventType;
-import com.six.node_manager.AbstractService;
 import com.six.node_manager.NodeEvent;
 import com.six.node_manager.NodeEventListen;
 import com.six.node_manager.NodeEventManager;
@@ -22,7 +21,7 @@ import com.six.node_manager.NodeEventManager;
  * @email 359852326@qq.com
  * @Description
  */
-public class NodeEventManagerImpl extends AbstractService implements NodeEventManager {
+public class NodeEventManagerImpl extends AbstractService implements NodeEventManager,Service {
 
 	private static final Logger log = LoggerFactory.getLogger(NodeEventManagerImpl.class);
 

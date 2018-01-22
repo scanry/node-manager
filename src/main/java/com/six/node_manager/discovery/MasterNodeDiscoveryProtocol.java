@@ -10,7 +10,7 @@ import com.six.node_manager.NodeInfo;
  */
 public interface MasterNodeDiscoveryProtocol extends NodeDiscoveryProtocol{
 
-	void join(NodeInfo slaveNodeInfo);
+	void join(NodeInfo info);
 
-	void leave(NodeInfo slaveNodeInfo);
+	void leave(NodeInfo info);
 }

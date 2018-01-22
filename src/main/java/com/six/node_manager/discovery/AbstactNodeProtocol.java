@@ -4,6 +4,7 @@ import java.util.Objects;
 
 import com.six.node_manager.NodeDiscovery;
 import com.six.node_manager.NodeInfo;
+import com.six.node_manager.NodeResource;
 
 /**
  * @author sixliu
@@ -11,7 +12,7 @@ import com.six.node_manager.NodeInfo;
  * @email 359852326@qq.com
  * @Description
  */
-public abstract class AbstactNodeProtocol implements NodeDiscoveryProtocol {
+public abstract class AbstactNodeProtocol implements NodeDiscoveryProtocol{
 
 	private NodeDiscovery nodeDiscovery;
 
@@ -43,6 +44,11 @@ public abstract class AbstactNodeProtocol implements NodeDiscoveryProtocol {
 	@Override
 	public NodeInfo getNewestLocalNode() {
 		return nodeDiscovery.getLocalNodeInfo();
+	}
+
+	@Override
+	public void heartbeat(NodeResource nodeResource) {
+		nodeDiscovery.refreshJoin(nodeResource);
 	}
 
 	protected NodeDiscovery getNodeDiscovery() {

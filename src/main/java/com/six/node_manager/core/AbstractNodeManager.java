@@ -1,6 +1,5 @@
 package com.six.node_manager.core;
 
-import com.six.node_manager.AbstractService;
 import com.six.node_manager.NodeManager;
 
 /**

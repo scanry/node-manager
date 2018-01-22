@@ -11,10 +11,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.six.node_manager.NodeEventManager;
 import com.six.node_manager.NodeInfo;
 import com.six.node_manager.NodeProtocolManager;
+import com.six.node_manager.NodeResourceCollect;
 import com.six.node_manager.NodeState;
+import com.six.node_manager.core.Node;
 import com.six.node_manager.discovery.AbstractNodeDiscovery;
 import com.six.node_manager.discovery.SlaveNodeDiscoveryProtocol;
 
@@ -36,24 +37,10 @@ public class RpcNodeDiscovery extends AbstractNodeDiscovery {
 	private final static int finalizeWait = 200;
 	private final static int IGNOREVALUE = -1;
 
-	public RpcNodeDiscovery(NodeInfo localNodeInfo, Map<String, NodeInfo> needDiscoveryNodeInfos,
-			NodeProtocolManager nodeProtocolManager, NodeEventManager nodeEventManager) {
-		super(localNodeInfo, nodeProtocolManager, nodeEventManager);
-		if (null != needDiscoveryNodeInfos) {
-			this.needDiscoveryNodeInfos = new HashMap<>(needDiscoveryNodeInfos.size());
-			for (Map.Entry<String, NodeInfo> entry : needDiscoveryNodeInfos.entrySet()) {
-				this.needDiscoveryNodeInfos.put(entry.getKey(), entry.getValue().copy());
-			}
-		} else {
-			this.needDiscoveryNodeInfos = Collections.emptyMap();
-		}
-		nodeProtocolManager.registerNodeRpcProtocol(RpcNodeDiscoveryProtocol.class, new RpcNodeDiscoveryProtocolImpl());
-	}
-
-	public RpcNodeDiscovery(NodeInfo localNodeInfo, Map<String, NodeInfo> needDiscoveryNodeInfos,
-			NodeProtocolManager nodeProtocolManager, NodeEventManager nodeEventManager, long heartbeatInterval,
+	public RpcNodeDiscovery(Node node, Map<String, NodeInfo> needDiscoveryNodeInfos,
+			NodeProtocolManager nodeProtocolManager, NodeResourceCollect nodeResourceCollect, long heartbeatInterval,
 			int allowHeartbeatErrCount) {
-		super(localNodeInfo, nodeProtocolManager, nodeEventManager, heartbeatInterval, allowHeartbeatErrCount);
+		super(node, nodeProtocolManager, nodeResourceCollect, heartbeatInterval, allowHeartbeatErrCount);
 		if (null != needDiscoveryNodeInfos) {
 			this.needDiscoveryNodeInfos = new HashMap<>(needDiscoveryNodeInfos.size());
 			for (Map.Entry<String, NodeInfo> entry : needDiscoveryNodeInfos.entrySet()) {
@@ -288,14 +275,7 @@ public class RpcNodeDiscovery extends AbstractNodeDiscovery {
 
 	}
 
-	@Override
-	protected void doHeartbeat(NodeInfo masterNodeInfo, NodeInfo localNodeInfo) {
-		RpcNodeDiscoveryProtocol rpcNodeDiscoveryProtocol = getNodeProtocolManager()
-				.lookupNodeRpcProtocol(masterNodeInfo, RpcNodeDiscoveryProtocol.class);
-		rpcNodeDiscoveryProtocol.heartbeat(localNodeInfo);
-	}
-
-	public class RpcNodeDiscoveryProtocolImpl implements RpcNodeDiscoveryProtocol {
+	public class RpcNodeDiscoveryProtocolImpl implements RpcNodeDiscoveryProtocol{
 
 		@Override
 		public String getName() {
@@ -313,11 +293,5 @@ public class RpcNodeDiscovery extends AbstractNodeDiscovery {
 			}
 			return null;
 		}
-
-		@Override
-		public void heartbeat(NodeInfo nodeInfo) {
-			refreshJoinNode(nodeInfo);
-		}
-
 	}
 }

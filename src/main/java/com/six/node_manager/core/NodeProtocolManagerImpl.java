@@ -3,7 +3,6 @@ package com.six.node_manager.core;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 
-import com.six.node_manager.AbstractService;
 import com.six.node_manager.NodeInfo;
 import com.six.node_manager.NodeProtocolManager;
 

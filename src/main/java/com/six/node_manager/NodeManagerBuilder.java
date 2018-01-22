@@ -16,12 +16,16 @@ import lombok.Data;
 @Data
 public class NodeManagerBuilder {
 
+	private static final long DEFAULT_HEARTBEAT_INTERVAL = 3000;
+	private static final int DEFAULT_HEARTBEAT_ERR_COUNT = 3;
 	private String clusterName;
 	private String nodeName;
 	private String host;
 	private int port;
 	private int version;
 	private String discoveryNodes;
+	private long heartbeatInterval;
+	private int allowHeartbeatErrCount;
 
 	public NodeInfo buildLocalNodeInfo() {
 		NodeInfo localNodeInfo = new NodeInfo();
@@ -35,36 +39,43 @@ public class NodeManagerBuilder {
 
 	public NodeManager build() {
 		NodeInfo localNodeInfo = buildLocalNodeInfo();
-		Map<String,NodeInfo> needDiscoveryNodeInfos = paserNeedDiscoveryNodeInfos(discoveryNodes, localNodeInfo);
-		return new ClusterNodeManager(localNodeInfo, needDiscoveryNodeInfos);
+		Map<String, NodeInfo> needDiscoveryNodeInfos = paserNeedDiscoveryNodeInfos(discoveryNodes, localNodeInfo);
+		if (0 == heartbeatInterval) {
+			heartbeatInterval = DEFAULT_HEARTBEAT_INTERVAL;
+		}
+		if (0 == allowHeartbeatErrCount) {
+			allowHeartbeatErrCount = DEFAULT_HEARTBEAT_ERR_COUNT;
+		}
+		return new ClusterNodeManager(localNodeInfo, needDiscoveryNodeInfos, heartbeatInterval,
+				allowHeartbeatErrCount);
 	}
 
 	// name@127.0.0.1:8881
-	private static Map<String,NodeInfo> paserNeedDiscoveryNodeInfos(String discoveryNodes, NodeInfo localNodeInfo) {
-		Map<String,NodeInfo> needDiscoveryNodeInfos = null;
+	private static Map<String, NodeInfo> paserNeedDiscoveryNodeInfos(String discoveryNodes, NodeInfo localNodeInfo) {
+		Map<String, NodeInfo> needDiscoveryNodeInfos = null;
 		if (null != discoveryNodes && discoveryNodes.trim().length() > 0) {
 			String[] discoveryNodesArray = discoveryNodes.split(";");
 			needDiscoveryNodeInfos = new HashMap<>(discoveryNodesArray.length);
 			String[] discoveryNodeArray = null;
 			NodeInfo nodeInfo = null;
-			String nodeName=null;
-			String nodeHostAndPort=null;
+			String nodeName = null;
+			String nodeHostAndPort = null;
 			for (String discoveryNodeStr : discoveryNodesArray) {
-				nodeName=discoveryNodeStr.substring(0, discoveryNodeStr.indexOf("@"));
-				nodeHostAndPort=discoveryNodeStr.substring(discoveryNodeStr.indexOf("@")+1);
+				nodeName = discoveryNodeStr.substring(0, discoveryNodeStr.indexOf("@"));
+				nodeHostAndPort = discoveryNodeStr.substring(discoveryNodeStr.indexOf("@") + 1);
 				discoveryNodeArray = nodeHostAndPort.split(":");
 				if (!localNodeInfo.getName().equals(nodeName)) {
 					nodeInfo = new NodeInfo();
 					nodeInfo.setName(nodeName);
 					nodeInfo.setHost(discoveryNodeArray[0]);
 					nodeInfo.setPort(Integer.valueOf(discoveryNodeArray[1]));
-					needDiscoveryNodeInfos.put(nodeInfo.getName(),nodeInfo);
+					needDiscoveryNodeInfos.put(nodeInfo.getName(), nodeInfo);
 				}
 			}
 		} else {
 			needDiscoveryNodeInfos = new HashMap<>(1);
 		}
-		needDiscoveryNodeInfos.put(localNodeInfo.getName(),localNodeInfo);
+		needDiscoveryNodeInfos.put(localNodeInfo.getName(), localNodeInfo);
 		return needDiscoveryNodeInfos;
 	}
 }

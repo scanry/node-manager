@@ -1,5 +1,7 @@
 package com.six.node_manager;
 
+import com.six.node_manager.core.Service;
+
 /**
  * @author sixliu
  * @date 2018年1月17日

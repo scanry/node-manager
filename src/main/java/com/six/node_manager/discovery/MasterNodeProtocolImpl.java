@@ -9,20 +9,20 @@ import com.six.node_manager.NodeInfo;
  * @email 359852326@qq.com
  * @Description
  */
-public class MasterNodeProtocolImpl extends AbstactNodeProtocol implements MasterNodeDiscoveryProtocol {
+public class MasterNodeProtocolImpl extends AbstactNodeProtocol
+		implements MasterNodeDiscoveryProtocol{
 
 	public MasterNodeProtocolImpl(NodeDiscovery nodeDiscovery) {
 		super(nodeDiscovery);
 	}
 
 	@Override
-	public void join(NodeInfo slaveNodeInfo) {
-		getNodeDiscovery().join(slaveNodeInfo);
+	public void join(NodeInfo info) {
+		getNodeDiscovery().join(info);
 	}
 
 	@Override
-	public void leave(NodeInfo slaveNodeInfo) {
-		getNodeDiscovery().leave(slaveNodeInfo);
+	public void leave(NodeInfo info) {
+		getNodeDiscovery().leave(info);
 	}
-
 }
