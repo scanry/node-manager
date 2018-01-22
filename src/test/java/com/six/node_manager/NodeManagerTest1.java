@@ -10,7 +10,6 @@ public class NodeManagerTest1 {
 
 	public static void main(String[] args) {
 		NodeManagerBuilder builder = new NodeManagerBuilder();
-		builder.setClusterEnable(true);
 		builder.setClusterName("cluster");
 		builder.setNodeName("node1");
 		builder.setHost("127.0.0.1");
