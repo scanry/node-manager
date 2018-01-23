@@ -1,4 +1,4 @@
-package com.six.node_manager.discovery.rpc;
+package com.six.node_manager.discovery;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -16,8 +16,6 @@ import com.six.node_manager.NodeProtocolManager;
 import com.six.node_manager.NodeResourceCollect;
 import com.six.node_manager.NodeState;
 import com.six.node_manager.core.Node;
-import com.six.node_manager.discovery.AbstractNodeDiscovery;
-import com.six.node_manager.discovery.SlaveNodeDiscoveryProtocol;
 
 /**
  * @author sixliu

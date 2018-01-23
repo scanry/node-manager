@@ -1,4 +1,4 @@
-package com.six.node_manager.discovery.rpc;
+package com.six.node_manager.discovery;
 
 import java.io.Serializable;
 

@@ -11,7 +11,7 @@ import com.six.node_manager.NodeEventManager;
 import com.six.node_manager.NodeInfo;
 import com.six.node_manager.NodeProtocolManager;
 import com.six.node_manager.NodeResourceCollect;
-import com.six.node_manager.discovery.rpc.RpcNodeDiscovery;
+import com.six.node_manager.discovery.RpcNodeDiscovery;
 
 /**
  * @author sixliu
