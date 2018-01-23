@@ -22,7 +22,7 @@ public class MasterNodeProtocolImpl extends AbstactNodeProtocol
 	}
 
 	@Override
-	public void leave(NodeInfo info) {
-		getNodeDiscovery().leave(info);
+	public void leave(String nodeName) {
+		getNodeDiscovery().leave(nodeName);
 	}
 }

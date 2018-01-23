@@ -14,5 +14,4 @@ public class SlaveNodeProtocolImpl extends AbstactNodeProtocol
 	public SlaveNodeProtocolImpl(NodeDiscovery nodeDiscovery) {
 		super(nodeDiscovery);
 	}
-
 }

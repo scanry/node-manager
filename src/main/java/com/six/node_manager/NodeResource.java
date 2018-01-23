@@ -13,7 +13,7 @@ import lombok.EqualsAndHashCode;
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
-public abstract class NodeResource implements Serializable,Comparable<NodeResource>{
+public class NodeResource implements Serializable,Comparable<NodeResource>{
 
 	/**
 	 * 
@@ -25,4 +25,11 @@ public abstract class NodeResource implements Serializable,Comparable<NodeResour
 	private float memoryUSeRate;
 	private float networkUseRate;
 	private long lastHeartbeatTime;
+	private long collectTime;
+	
+	@Override
+	public int compareTo(NodeResource o) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
 }

@@ -10,7 +10,7 @@ import com.six.node_manager.role.NodeRole;
  * @author sixliu
  * @date 2018年1月12日
  * @email 359852326@qq.com
- * @Description 节点注册中心
+ * @Description 节点发现
  */
 public interface NodeDiscovery extends Service {
 
@@ -27,18 +27,14 @@ public interface NodeDiscovery extends Service {
 	NodeInfo getMasterNodeInfo();
 
 	Set<NodeInfo> getSlaveNodInfos();
-	
+
 	List<NodeInfo> listJoin();
-	
+
 	void join(NodeInfo nodeInfo);
 
 	void refreshJoin(NodeResource nodeResource);
 
-	void leave(NodeInfo Info);
+	void leave(String nodeName);
 
 	boolean isHealthy();
-	
-	void broadcastLocalNodeInfo();
-
-	void unbroadcastLocalNodeInfo();
 }

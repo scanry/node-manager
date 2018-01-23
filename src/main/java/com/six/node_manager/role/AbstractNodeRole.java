@@ -1,16 +1,16 @@
 package com.six.node_manager.role;
 
 import java.util.Objects;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.six.node_manager.NodeInfo;
 import com.six.node_manager.NodeProtocolManager;
 import com.six.node_manager.core.AbstractService;
+import com.six.node_manager.core.ClusterNodes;
 import com.six.node_manager.core.Node;
 import com.six.node_manager.discovery.AbstractNodeDiscovery;
-import com.six.node_manager.NodeResourceCollect;
-
 /**
  * @author sixliu
  * @date 2018年1月22日
@@ -22,25 +22,25 @@ public abstract class AbstractNodeRole extends AbstractService implements NodeRo
 	private static Logger log = LoggerFactory.getLogger(AbstractNodeRole.class);
 	protected Node node;
 	private NodeInfo master;
+	private ClusterNodes clusterNodes; 
 	private AbstractNodeDiscovery nodeDiscovery;
 	private NodeProtocolManager nodeProtocolManager;
-	private NodeResourceCollect nodeResourceCollect;
 	private Thread workThread;
 	private long workInterval;
 
-	public AbstractNodeRole(String name, Node node, NodeInfo master, AbstractNodeDiscovery nodeDiscovery,
-			NodeProtocolManager nodeProtocolManager, NodeResourceCollect nodeResourceCollect, long workInterval) {
+	public AbstractNodeRole(String name, Node node, NodeInfo master,ClusterNodes clusterNodes, AbstractNodeDiscovery nodeDiscovery,
+			NodeProtocolManager nodeProtocolManager,long workInterval) {
 		super(name);
 		Objects.requireNonNull(node);
 		Objects.requireNonNull(master);
+		Objects.requireNonNull(clusterNodes);
 		Objects.requireNonNull(nodeDiscovery);
 		Objects.requireNonNull(nodeProtocolManager);
-		Objects.requireNonNull(nodeResourceCollect);
 		this.node = node;
 		this.master = master;
+		this.clusterNodes=clusterNodes;
 		this.nodeDiscovery = nodeDiscovery;
 		this.nodeProtocolManager = nodeProtocolManager;
-		this.nodeResourceCollect = nodeResourceCollect;
 		this.workThread = new Thread(() -> {
 			work();
 		}, "NodeDiscovery-heartbeat-to-master-thread");
@@ -88,15 +88,15 @@ public abstract class AbstractNodeRole extends AbstractService implements NodeRo
 		return master;
 	}
 
+	protected ClusterNodes getClusterNodes() {
+		return clusterNodes;
+	}
+
 	protected AbstractNodeDiscovery getNodeDiscovery() {
 		return nodeDiscovery;
 	}
 
 	protected NodeProtocolManager getNodeProtocolManager() {
 		return nodeProtocolManager;
-	}
-
-	protected NodeResourceCollect getNodeResourceCollect() {
-		return nodeResourceCollect;
 	}
 }

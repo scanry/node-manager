@@ -1,9 +1,7 @@
 package com.six.node_manager.discovery;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -13,9 +11,8 @@ import org.slf4j.LoggerFactory;
 
 import com.six.node_manager.NodeInfo;
 import com.six.node_manager.NodeProtocolManager;
-import com.six.node_manager.NodeResourceCollect;
 import com.six.node_manager.NodeState;
-import com.six.node_manager.core.Node;
+import com.six.node_manager.core.ClusterNodes;
 
 /**
  * @author sixliu
@@ -28,142 +25,121 @@ public class RpcNodeDiscovery extends AbstractNodeDiscovery {
 	private static Logger log = LoggerFactory.getLogger(RpcNodeDiscovery.class);
 
 	private LinkedBlockingQueue<MasterProposal> revMasterProposalQueue = new LinkedBlockingQueue<>();
-	private Map<String, NodeInfo> needDiscoveryNodeInfos;
 	private MasterProposal currentMasterProposal;
 	private AtomicInteger logicClock = new AtomicInteger(0);
 	private final static int maxNotificationInterval = 60000;
 	private final static int finalizeWait = 200;
 	private final static int IGNOREVALUE = -1;
 
-	public RpcNodeDiscovery(Node node, Map<String, NodeInfo> needDiscoveryNodeInfos,
-			NodeProtocolManager nodeProtocolManager, NodeResourceCollect nodeResourceCollect, long heartbeatInterval,
-			int allowHeartbeatErrCount) {
-		super(node, nodeProtocolManager, nodeResourceCollect, heartbeatInterval, allowHeartbeatErrCount);
-		if (null != needDiscoveryNodeInfos) {
-			this.needDiscoveryNodeInfos = new HashMap<>(needDiscoveryNodeInfos.size());
-			for (Map.Entry<String, NodeInfo> entry : needDiscoveryNodeInfos.entrySet()) {
-				this.needDiscoveryNodeInfos.put(entry.getKey(), entry.getValue().copy());
-			}
-		} else {
-			this.needDiscoveryNodeInfos = Collections.emptyMap();
-		}
+	public RpcNodeDiscovery(ClusterNodes clusterNodes, Map<String, NodeInfo> needDiscoveryNodeInfos,
+			NodeProtocolManager nodeProtocolManager, long heartbeatInterval, int allowHeartbeatErrCount) {
+		super(clusterNodes, nodeProtocolManager, heartbeatInterval, allowHeartbeatErrCount);
 		nodeProtocolManager.registerNodeRpcProtocol(RpcNodeDiscoveryProtocol.class, new RpcNodeDiscoveryProtocolImpl());
-	}
-
-	private int getWonSize() {
-		return needDiscoveryNodeInfos.size() / 2 + 1;
 	}
 
 	@Override
 	protected NodeInfo doElection() {
 		NodeInfo won = null;
-		if (null == needDiscoveryNodeInfos || needDiscoveryNodeInfos.isEmpty()) {
-			won = getLocalNodeInfo();
-		} else {
-			synchronized (this) {
-				logicClock.incrementAndGet();
-				this.currentMasterProposal = newMasterProposal(getLocalNodeInfo());
+		synchronized (this) {
+			logicClock.incrementAndGet();
+			this.currentMasterProposal = newMasterProposal(getLocalNodeInfo());
+		}
+		sendMasterProposal();
+		Map<String, NodeInfo> masterProposalScoreMap = new HashMap<>();
+		HashMap<String, NodeInfo> outofelection = new HashMap<String, NodeInfo>();
+		MasterProposal masterProposal = null;
+		long notTimeout = finalizeWait;
+		while (null == won) {
+			try {
+				masterProposal = revMasterProposalQueue.poll(notTimeout, TimeUnit.MILLISECONDS);
+			} catch (InterruptedException e) {
 			}
-			sendMasterProposal();
-			Map<String, NodeInfo> masterProposalScoreMap = new HashMap<>();
-			HashMap<String, NodeInfo> outofelection = new HashMap<String, NodeInfo>();
-			int winSize = getWonSize();
-			MasterProposal masterProposal = null;
-			long notTimeout = finalizeWait;
-			while (null == won) {
-				try {
-					masterProposal = revMasterProposalQueue.poll(notTimeout, TimeUnit.MILLISECONDS);
-				} catch (InterruptedException e) {
-				}
-				if (null == masterProposal) {
-					if (allPingSuccessed()) {
+			if (null == masterProposal) {
+				sendMasterProposal();
+				long tmpTimeOut = notTimeout * 2;
+				notTimeout = (tmpTimeOut < maxNotificationInterval ? tmpTimeOut : maxNotificationInterval);
+				log.info("send proposal time out: " + notTimeout);
+			} else if (null == masterProposal.getNode()) {
+				log.warn("Ignoring proposal and the proposal's master is null");
+			} else if (isMember(masterProposal.getNode())) {
+				switch (masterProposal.getNode().getState()) {
+				case LOOKING:
+					if (masterProposal.getLogicClock() < logicClock.get()) {
+						log.warn("the MasterProposal{" + masterProposal.toString() + "}'s logicClock["
+								+ masterProposal.getLogicClock() + "]<currentLogicClock["
+								+ currentMasterProposal.getLogicClock() + "]");
+					} else if (masterProposal.getLogicClock() > logicClock.get()) {
+						logicClock.set(masterProposal.getLogicClock());
+						masterProposalScoreMap.clear();
+						if (isWon(masterProposal, currentMasterProposal)) {
+							this.currentMasterProposal = newMasterProposal(masterProposal.getNode());
+						} else {
+							this.currentMasterProposal = newMasterProposal(getLocalNodeInfo());
+						}
+						sendMasterProposal();
+					} else if (isWon(masterProposal, currentMasterProposal)) {
+						this.currentMasterProposal = newMasterProposal(masterProposal.getNode());
 						sendMasterProposal();
 					}
-					long tmpTimeOut = notTimeout * 2;
-					notTimeout = (tmpTimeOut < maxNotificationInterval ? tmpTimeOut : maxNotificationInterval);
-					log.info("send proposal time out: " + notTimeout);
-				} else if (null == masterProposal.getNode()) {
-					log.warn("Ignoring proposal and the proposal's master is null");
-				} else if (isMember(masterProposal.getNode())) {
-					switch (masterProposal.getNode().getState()) {
-					case LOOKING:
-						if (masterProposal.getLogicClock() < logicClock.get()) {
-							log.warn("the MasterProposal{" + masterProposal.toString() + "}'s logicClock["
-									+ masterProposal.getLogicClock() + "]<currentLogicClock["
-									+ currentMasterProposal.getLogicClock() + "]");
-						} else if (masterProposal.getLogicClock() > logicClock.get()) {
-							logicClock.set(masterProposal.getLogicClock());
-							masterProposalScoreMap.clear();
-							if (isWon(masterProposal, currentMasterProposal)) {
-								this.currentMasterProposal = newMasterProposal(masterProposal.getNode());
-							} else {
-								this.currentMasterProposal = newMasterProposal(getLocalNodeInfo());
-							}
-							sendMasterProposal();
-						} else if (isWon(masterProposal, currentMasterProposal)) {
-							this.currentMasterProposal = newMasterProposal(masterProposal.getNode());
-							sendMasterProposal();
-						}
-						masterProposalScoreMap.put(masterProposal.getProposer(), masterProposal.getNode());
-						if (isWon(masterProposalScoreMap, currentMasterProposal, winSize)) {
-							try {
-								while ((masterProposal = revMasterProposalQueue.poll(finalizeWait,
-										TimeUnit.MILLISECONDS)) != null) {
-									if (isWon(masterProposal, currentMasterProposal)) {
-										revMasterProposalQueue.put(masterProposal);
-										break;
-									}
+					masterProposalScoreMap.put(masterProposal.getProposer(), masterProposal.getNode());
+					if (isWon(masterProposalScoreMap, currentMasterProposal)) {
+						try {
+							while ((masterProposal = revMasterProposalQueue.poll(finalizeWait,
+									TimeUnit.MILLISECONDS)) != null) {
+								if (isWon(masterProposal, currentMasterProposal)) {
+									revMasterProposalQueue.put(masterProposal);
+									break;
 								}
-							} catch (InterruptedException e) {
+							}
+						} catch (InterruptedException e) {
 
-							}
-							if (masterProposal == null) {
-								won = currentMasterProposal.getNode();
-								revMasterProposalQueue.clear();
-								return won;
-							}
 						}
+						if (masterProposal == null) {
+							won = currentMasterProposal.getNode();
+							revMasterProposalQueue.clear();
+							return won;
+						}
+					}
 
-						break;
-					case SLAVE:
-					case MASTER:
-						if (masterProposal.getLogicClock() == logicClock.get()) {
-							masterProposalScoreMap.put(masterProposal.getProposer(), masterProposal.getNode());
-							if (isWon(masterProposalScoreMap, masterProposal, winSize)
-									&& checkMaster(outofelection, masterProposal, masterProposal.getLogicClock())) {
-								won = masterProposal.getNode();
-								revMasterProposalQueue.clear();
-								return won;
-							}
-						}
-						outofelection.put(masterProposal.getProposer(), masterProposal.getNode());
-						if (isWon(outofelection, masterProposal, winSize)
-								&& checkMaster(outofelection, masterProposal, IGNOREVALUE)) {
-							synchronized (this) {
-								logicClock.set(masterProposal.getLogicClock());
-							}
+					break;
+				case SLAVE:
+				case MASTER:
+					if (masterProposal.getLogicClock() == logicClock.get()) {
+						masterProposalScoreMap.put(masterProposal.getProposer(), masterProposal.getNode());
+						if (isWon(masterProposalScoreMap, masterProposal)
+								&& checkMaster(outofelection, masterProposal, masterProposal.getLogicClock())) {
 							won = masterProposal.getNode();
 							revMasterProposalQueue.clear();
 							return won;
 						}
-						break;
-					default:
-						// Ignoring
-						break;
 					}
-				} else {
-					log.warn("Ignoring proposal from non-cluster member:" + masterProposal.getNode().getName());
+					outofelection.put(masterProposal.getProposer(), masterProposal.getNode());
+					if (isWon(outofelection, masterProposal)
+							&& checkMaster(outofelection, masterProposal, IGNOREVALUE)) {
+						synchronized (this) {
+							logicClock.set(masterProposal.getLogicClock());
+						}
+						won = masterProposal.getNode();
+						revMasterProposalQueue.clear();
+						return won;
+					}
+					break;
+				default:
+					// Ignoring
+					break;
 				}
+			} else {
+				log.warn("Ignoring proposal from non-cluster member:" + masterProposal.getNode().getName());
 			}
 		}
 		return won;
 	}
 
 	protected boolean isMember(NodeInfo node) {
-		return needDiscoveryNodeInfos.containsKey(node.getName());
+		return getClusterNodes().isMember(node.getName());
 	}
 
-	protected boolean isWon(Map<String, NodeInfo> masterProposalScoreMap, MasterProposal masterProposal, int wonVotes) {
+	protected boolean isWon(Map<String, NodeInfo> masterProposalScoreMap, MasterProposal masterProposal) {
 		if (!isMember(masterProposal.getNode())) {
 			return false;
 		} else {
@@ -173,7 +149,7 @@ public class RpcNodeDiscovery extends AbstractNodeDiscovery {
 					totalVotes++;
 				}
 			}
-			return totalVotes >= wonVotes;
+			return getClusterNodes().isMoreThanHalfProcess(totalVotes);
 		}
 	}
 
@@ -201,37 +177,11 @@ public class RpcNodeDiscovery extends AbstractNodeDiscovery {
 		return predicate;
 	}
 
-	private boolean allPingSuccessed() {
-		SlaveNodeDiscoveryProtocol slaveNodeDiscoveryProtocol = null;
-		final AtomicInteger successCount = new AtomicInteger(0);
-		CountDownLatch cdl = new CountDownLatch(needDiscoveryNodeInfos.size());
-		for (NodeInfo nodeInfo : needDiscoveryNodeInfos.values()) {
-			try {
-				slaveNodeDiscoveryProtocol = getNodeProtocolManager().lookupNodeRpcProtocol(nodeInfo,
-						SlaveNodeDiscoveryProtocol.class, result -> {
-							if (result.isSuccessed()) {
-								successCount.incrementAndGet();
-							}
-							cdl.countDown();
-						});
-				slaveNodeDiscoveryProtocol.ping();
-			} catch (Exception e) {
-				log.error("rpc rpcNodeDiscoveryProtocol.sendMasterProposal exception", e);
-			}
-		}
-		try {
-			cdl.await();
-		} catch (InterruptedException e) {
-		}
-		return successCount.get() == needDiscoveryNodeInfos.size();
-	}
-
 	private void sendMasterProposal() {
-		RpcNodeDiscoveryProtocol rpcNodeDiscoveryProtocol = null;
-		for (NodeInfo nodeInfo : needDiscoveryNodeInfos.values()) {
+		getClusterNodes().forEachNeedDiscoveryNodeInfos((nodeName, nodeInfo) -> {
 			try {
-				rpcNodeDiscoveryProtocol = getNodeProtocolManager().lookupNodeRpcProtocol(nodeInfo,
-						RpcNodeDiscoveryProtocol.class, result -> {
+				RpcNodeDiscoveryProtocol rpcNodeDiscoveryProtocol = getNodeProtocolManager()
+						.lookupNodeRpcProtocol(nodeInfo, RpcNodeDiscoveryProtocol.class, result -> {
 							if (result.isSuccessed()) {
 								log.info("rpc rpcNodeDiscoveryProtocol.sendMasterProposal[" + nodeInfo + "]successed");
 								if (null != result.getResult()) {
@@ -245,7 +195,7 @@ public class RpcNodeDiscovery extends AbstractNodeDiscovery {
 			} catch (Exception e) {
 				log.error("rpc rpcNodeDiscoveryProtocol.sendMasterProposal exception", e);
 			}
-		}
+		});
 	}
 
 	private MasterProposal newMasterProposal(NodeInfo node) {
@@ -258,22 +208,7 @@ public class RpcNodeDiscovery extends AbstractNodeDiscovery {
 		return masterProposal;
 	}
 
-	@Override
-	public void broadcastLocalNodeInfo() {
-
-	}
-
-	@Override
-	public void unbroadcastLocalNodeInfo() {
-
-	}
-
-	@Override
-	protected void close() {
-
-	}
-
-	public class RpcNodeDiscoveryProtocolImpl implements RpcNodeDiscoveryProtocol{
+	public class RpcNodeDiscoveryProtocolImpl implements RpcNodeDiscoveryProtocol {
 
 		@Override
 		public String getName() {

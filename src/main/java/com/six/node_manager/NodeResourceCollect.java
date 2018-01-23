@@ -10,7 +10,7 @@ import java.util.Comparator;
  */
 public interface NodeResourceCollect{
 
-	NodeResource collect();
+	NodeResource collect(String nodeName);
 	
 	Comparator<NodeResource> getComparator();
 }

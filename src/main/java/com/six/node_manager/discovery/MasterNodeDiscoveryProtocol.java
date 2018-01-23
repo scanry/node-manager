@@ -12,5 +12,5 @@ public interface MasterNodeDiscoveryProtocol extends NodeDiscoveryProtocol{
 
 	void join(NodeInfo info);
 
-	void leave(NodeInfo info);
+	void leave(String nodeName);
 }

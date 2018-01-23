@@ -41,6 +41,13 @@ public interface NodeManager extends Service {
 	Set<NodeInfo> getSlaveNods();
 
 	/**
+	 * 获取集群信息
+	 * 
+	 * @return
+	 */
+	ClusterInfo getClusterInfo();
+
+	/**
 	 * 获取节点事件管理
 	 * 
 	 * @return

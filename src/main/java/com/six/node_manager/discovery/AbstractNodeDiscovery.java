@@ -3,11 +3,8 @@ package com.six.node_manager.discovery;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.TreeMap;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.slf4j.Logger;
@@ -19,9 +16,9 @@ import com.six.node_manager.NodeEventType;
 import com.six.node_manager.NodeInfo;
 import com.six.node_manager.NodeProtocolManager;
 import com.six.node_manager.NodeResource;
-import com.six.node_manager.NodeResourceCollect;
 import com.six.node_manager.NodeState;
 import com.six.node_manager.core.AbstractService;
+import com.six.node_manager.core.ClusterNodes;
 import com.six.node_manager.core.Node;
 import com.six.node_manager.role.LookingNodeRole;
 import com.six.node_manager.role.MasterNodeRole;
@@ -38,18 +35,13 @@ public abstract class AbstractNodeDiscovery extends AbstractService implements N
 
 	private static Logger log = LoggerFactory.getLogger(AbstractNodeDiscovery.class);
 
-	protected Node localNode;
+	private Node localNode;
 	private volatile NodeInfo masterNodeInfo;
 	private NodeProtocolManager nodeProtocolManager;
 	private MasterNodeDiscoveryProtocol masterNodeDiscoveryProtocol;
 	private SlaveNodeDiscoveryProtocol slaveNodeDiscoveryProtocol;
-	private NodeResourceCollect nodeResourceCollect;
-	// 加入的slave节点信息
-	private Map<String, NodeInfo> joinSlaveNodeInfos = new ConcurrentHashMap<>();
-	// 加入的slave节点信息
-	private Map<String, NodeResource> hearbeatNodeResources = new TreeMap<>();
-	// 丢失的slave节点信息
-	private Map<String, NodeInfo> missSlaveNodeInfos = new ConcurrentHashMap<>();
+	// 进群节点容器
+	private ClusterNodes clusterNodes;
 	/** 选举守护线程 **/
 	private Thread electionThread;
 	private AtomicBoolean notifyElectionMonitor = new AtomicBoolean(false);
@@ -57,16 +49,15 @@ public abstract class AbstractNodeDiscovery extends AbstractService implements N
 	private int allowHeartbeatErrCount;
 	private NodeRole nodeRole;
 
-	public AbstractNodeDiscovery(Node node, NodeProtocolManager nodeProtocolManager,
-			NodeResourceCollect nodeResourceCollect, long heartbeatInterval, int allowHeartbeatErrCount) {
+	public AbstractNodeDiscovery(ClusterNodes clusterNodes, NodeProtocolManager nodeProtocolManager,
+			long heartbeatInterval, int allowHeartbeatErrCount) {
 		super("nodeDiscovery");
-		Objects.requireNonNull(node);
+		Objects.requireNonNull(clusterNodes);
 		Objects.requireNonNull(nodeProtocolManager);
-		Objects.requireNonNull(nodeResourceCollect);
-		this.localNode = node;
+		this.clusterNodes = clusterNodes;
+		this.localNode = clusterNodes.getLocalNode();
 		this.nodeRole = new LookingNodeRole();
 		this.nodeProtocolManager = nodeProtocolManager;
-		this.nodeResourceCollect = nodeResourceCollect;
 		masterNodeDiscoveryProtocol = new MasterNodeProtocolImpl(this);
 		slaveNodeDiscoveryProtocol = new SlaveNodeProtocolImpl(this);
 		this.heartbeatInterval = heartbeatInterval;
@@ -75,6 +66,10 @@ public abstract class AbstractNodeDiscovery extends AbstractService implements N
 			election();
 		}, "NodeDiscovery-election-thread");
 		this.electionThread.setDaemon(true);
+	}
+
+	protected ClusterNodes getClusterNodes() {
+		return clusterNodes;
 	}
 
 	@Override
@@ -95,6 +90,10 @@ public abstract class AbstractNodeDiscovery extends AbstractService implements N
 	@Override
 	public final NodeInfo getLocalNodeInfo() {
 		return localNode.nodeInfo();
+	}
+
+	protected Node getNode() {
+		return localNode;
 	}
 
 	@Override
@@ -119,20 +118,20 @@ public abstract class AbstractNodeDiscovery extends AbstractService implements N
 
 	@Override
 	public List<NodeInfo> listJoin() {
-		List<NodeInfo> list = new ArrayList<>(joinSlaveNodeInfos.size());
-		for (NodeInfo nodeInfo : joinSlaveNodeInfos.values()) {
+		List<NodeInfo> list = new ArrayList<>(clusterNodes.joinSlaveSize());
+		clusterNodes.forEachJoinSlaveNodeInfos((nodeName, nodeInfo) -> {
 			list.add(nodeInfo.copy());
-		}
+		});
 		return list;
 	}
 
 	@Override
 	public final void join(NodeInfo nodeInfo) {
 		if (null != nodeInfo) {
-			if (missSlaveNodeInfos.containsKey(nodeInfo.getName())) {
-				// TODO 丢失后再次join
+			if (null != clusterNodes.removeMissSlaveNodeInfos(nodeInfo.getName())) {
+				log.info("miss slave node[" + nodeInfo + "] join");
 			}
-			joinSlaveNodeInfos.put(nodeInfo.getName(), nodeInfo);
+			clusterNodes.addJoinSlaveNodeInfos(nodeInfo);
 			localNode.addNodeEvent(new NodeEvent(NodeEventType.SLAVE_JOIN, nodeInfo));
 		} else {
 			log.warn("the join's node is null");
@@ -143,18 +142,19 @@ public abstract class AbstractNodeDiscovery extends AbstractService implements N
 	public final void refreshJoin(NodeResource info) {
 		if (null != info) {
 			info.setLastHeartbeatTime(System.currentTimeMillis());
-			hearbeatNodeResources.put(info.getNodeName(), info);
+			clusterNodes.addHearbeatNodeResources(info);
 		} else {
 			log.warn("the heartbeat's info is null");
 		}
 	}
 
 	@Override
-	public final void leave(NodeInfo Info) {
-		if (null != Info && null == joinSlaveNodeInfos.remove(Info.getName())) {
-			log.warn("the node[" + Info.getName() + "] didn't join");
+	public final void leave(String nodeName) {
+		NodeInfo info = null;
+		if (null != nodeName && info == clusterNodes.removeJoinSlaveNodeInfos(nodeName)) {
+			log.warn("the node[" + nodeName + "] didn't join");
 		} else {
-			localNode.addNodeEvent(new NodeEvent(NodeEventType.MISS_SLAVE, Info));
+			localNode.addNodeEvent(new NodeEvent(NodeEventType.MISS_SLAVE, info));
 		}
 	}
 
@@ -178,8 +178,7 @@ public abstract class AbstractNodeDiscovery extends AbstractService implements N
 	protected final void doStop() {
 		MasterNodeDiscoveryProtocol masterNodeProtocol = nodeProtocolManager.lookupNodeRpcProtocol(getMasterNodeInfo(),
 				MasterNodeDiscoveryProtocol.class);
-		masterNodeProtocol.leave(getLocalNodeInfo());
-		close();
+		masterNodeProtocol.leave(getLocalNodeName());
 	}
 
 	private void notifyElection() {
@@ -205,7 +204,7 @@ public abstract class AbstractNodeDiscovery extends AbstractService implements N
 					if (!getLocalNodeName().equals(master.getName())) {
 						masterNodeInfo = master;
 						localNode.slave();
-						nodeRole = new SlaveNodeRole(localNode, master, this, nodeProtocolManager, nodeResourceCollect,
+						nodeRole = new SlaveNodeRole(localNode, master, clusterNodes, this, nodeProtocolManager,
 								heartbeatInterval, allowHeartbeatErrCount);
 						MasterNodeDiscoveryProtocol masterNodeProtocol = nodeProtocolManager
 								.lookupNodeRpcProtocol(master, MasterNodeDiscoveryProtocol.class);
@@ -213,9 +212,8 @@ public abstract class AbstractNodeDiscovery extends AbstractService implements N
 					} else {
 						masterNodeInfo = master;
 						localNode.master();
-						nodeRole = new MasterNodeRole(localNode, master, this, nodeProtocolManager, nodeResourceCollect,
-								joinSlaveNodeInfos, missSlaveNodeInfos, hearbeatNodeResources, heartbeatInterval,
-								allowHeartbeatErrCount);
+						nodeRole = new MasterNodeRole(localNode, master, this, nodeProtocolManager, clusterNodes,
+								heartbeatInterval, allowHeartbeatErrCount);
 					}
 					nodeRole.start();
 				} catch (Exception e) {
@@ -238,8 +236,6 @@ public abstract class AbstractNodeDiscovery extends AbstractService implements N
 	}
 
 	protected abstract NodeInfo doElection();
-
-	protected abstract void close();
 
 	protected NodeProtocolManager getNodeProtocolManager() {
 		return nodeProtocolManager;

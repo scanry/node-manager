@@ -33,6 +33,11 @@ public interface Service {
 	 */
 	State getState();
 	
+	
+	/**
+	 * 服务是否正在运行
+	 * @return
+	 */
 	boolean isRunning();
 
 	/**

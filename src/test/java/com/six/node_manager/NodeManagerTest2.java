@@ -30,6 +30,14 @@ public class NodeManagerTest2 {
 			System.out.println("slave join:" + node);
 			System.out.println("slave size:" + nodeManager.getSlaveNods().size());
 		});
+		nodeManager.getNodeEventManager().registerNodeEventListen(NodeEventType.MISS_MASTER, node -> {
+			System.out.println("master:" + nodeManager.getMasterNode());
+			System.out.println("miss master:" + node);
+		});
+		nodeManager.getNodeEventManager().registerNodeEventListen(NodeEventType.MISS_SLAVE, node -> {
+			System.out.println("master:" + nodeManager.getMasterNode());
+			System.out.println("miss slave:" + node);
+		});
 		nodeManager.start();
 		try {
 			Thread.sleep(1111111111);

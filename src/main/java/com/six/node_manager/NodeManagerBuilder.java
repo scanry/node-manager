@@ -4,6 +4,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.six.node_manager.core.ClusterNodeManager;
+import com.six.node_manager.core.ClusterNodes;
+import com.six.node_manager.core.Node;
+import com.six.node_manager.core.NodeProtocolManagerImpl;
+import com.six.node_manager.core.NodeResourceCollectFactory;
+import com.six.node_manager.discovery.RpcNodeDiscovery;
 
 import lombok.Data;
 
@@ -16,16 +21,20 @@ import lombok.Data;
 @Data
 public class NodeManagerBuilder {
 
-	private static final long DEFAULT_HEARTBEAT_INTERVAL = 3000;
-	private static final int DEFAULT_HEARTBEAT_ERR_COUNT = 3;
+	private static final long DEFAULT_HEARTBEAT_INTERVAL = 2000;
+	private static final int DEFAULT_HEARTBEAT_ERR_COUNT = 2;
 	private String clusterName;
 	private String nodeName;
 	private String host;
 	private int port;
 	private int version;
+	/** name1@127.0.0.1:8881;name2@127.0.0.1:8882 **/
 	private String discoveryNodes;
 	private long heartbeatInterval;
 	private int allowHeartbeatErrCount;
+	private NodeResourceCollect nodeResourceCollect;
+	private NodeProtocolManager nodeProtocolManager;
+	private NodeDiscovery nodeDiscovery;
 
 	public NodeInfo buildLocalNodeInfo() {
 		NodeInfo localNodeInfo = new NodeInfo();
@@ -40,18 +49,28 @@ public class NodeManagerBuilder {
 	public NodeManager build() {
 		NodeInfo localNodeInfo = buildLocalNodeInfo();
 		Map<String, NodeInfo> needDiscoveryNodeInfos = paserNeedDiscoveryNodeInfos(discoveryNodes, localNodeInfo);
-		if (0 == heartbeatInterval) {
+		if (0 >= heartbeatInterval) {
 			heartbeatInterval = DEFAULT_HEARTBEAT_INTERVAL;
 		}
-		if (0 == allowHeartbeatErrCount) {
+		if (0 >= allowHeartbeatErrCount) {
 			allowHeartbeatErrCount = DEFAULT_HEARTBEAT_ERR_COUNT;
 		}
-		return new ClusterNodeManager(localNodeInfo, needDiscoveryNodeInfos, heartbeatInterval,
-				allowHeartbeatErrCount);
+		if (null == nodeResourceCollect) {
+			nodeResourceCollect = NodeResourceCollectFactory.newNodeResourceCollect();
+		}
+		if (null == nodeProtocolManager) {
+			nodeProtocolManager = new NodeProtocolManagerImpl(localNodeInfo.getHost(), localNodeInfo.getPort());
+		}
+		Node localNode = Node.getNode(localNodeInfo, needDiscoveryNodeInfos.size(), nodeResourceCollect);
+		ClusterNodes clusterNodes = new ClusterNodes(localNode, needDiscoveryNodeInfos);
+		if (null == nodeDiscovery) {
+			nodeDiscovery = new RpcNodeDiscovery(clusterNodes, needDiscoveryNodeInfos, nodeProtocolManager,
+					heartbeatInterval, allowHeartbeatErrCount);
+		}
+		return new ClusterNodeManager(clusterNodes, nodeProtocolManager, nodeDiscovery);
 	}
 
-	// name@127.0.0.1:8881
-	private static Map<String, NodeInfo> paserNeedDiscoveryNodeInfos(String discoveryNodes, NodeInfo localNodeInfo) {
+	private Map<String, NodeInfo> paserNeedDiscoveryNodeInfos(String discoveryNodes, NodeInfo localNodeInfo) {
 		Map<String, NodeInfo> needDiscoveryNodeInfos = null;
 		if (null != discoveryNodes && discoveryNodes.trim().length() > 0) {
 			String[] discoveryNodesArray = discoveryNodes.split(";");
@@ -66,6 +85,7 @@ public class NodeManagerBuilder {
 				discoveryNodeArray = nodeHostAndPort.split(":");
 				if (!localNodeInfo.getName().equals(nodeName)) {
 					nodeInfo = new NodeInfo();
+					nodeInfo.setClusterName(clusterName);
 					nodeInfo.setName(nodeName);
 					nodeInfo.setHost(discoveryNodeArray[0]);
 					nodeInfo.setPort(Integer.valueOf(discoveryNodeArray[1]));

@@ -1,17 +1,16 @@
 package com.six.node_manager.core;
 
-import java.util.Map;
 import java.util.Set;
 
 import com.six.node_manager.Cache;
+import com.six.node_manager.ClusterInfo;
 import com.six.node_manager.FileSystem;
 import com.six.node_manager.Lock;
 import com.six.node_manager.NodeDiscovery;
 import com.six.node_manager.NodeEventManager;
 import com.six.node_manager.NodeInfo;
+import com.six.node_manager.NodeManager;
 import com.six.node_manager.NodeProtocolManager;
-import com.six.node_manager.NodeResourceCollect;
-import com.six.node_manager.discovery.RpcNodeDiscovery;
 
 /**
  * @author sixliu
@@ -19,20 +18,18 @@ import com.six.node_manager.discovery.RpcNodeDiscovery;
  * @email 359852326@qq.com
  * @Description
  */
-public class ClusterNodeManager extends AbstractNodeManager {
+public class ClusterNodeManager extends AbstractService implements NodeManager {
 
-	protected Node localNode;
-	private NodeDiscovery nodeDiscovery;
+	private ClusterNodes clusterNodes;
 	private NodeProtocolManager nodeProtocolManager;
-	private NodeResourceCollect nodeResourceCollect;
+	private NodeDiscovery nodeDiscovery;
 
-	public ClusterNodeManager(NodeInfo localNodeInfo, Map<String, NodeInfo> needDiscoveryNodeInfos,
-			long heartbeatInterval, int allowHeartbeatErrCount) {
-		this.localNode = Node.getNode(localNodeInfo);
-		this.nodeProtocolManager = new NodeProtocolManagerImpl(localNodeInfo.getHost(), localNodeInfo.getPort());
-		this.nodeResourceCollect = new NodeResourceCollectImpl();
-		this.nodeDiscovery = new RpcNodeDiscovery(localNode, needDiscoveryNodeInfos, nodeProtocolManager,
-				nodeResourceCollect, heartbeatInterval, allowHeartbeatErrCount);
+	public ClusterNodeManager(ClusterNodes clusterNodes, NodeProtocolManager nodeProtocolManager,
+			NodeDiscovery nodeDiscovery) {
+		super("nodeManager");
+		this.clusterNodes = clusterNodes;
+		this.nodeProtocolManager = nodeProtocolManager;
+		this.nodeDiscovery = nodeDiscovery;
 	}
 
 	@Override
@@ -56,13 +53,18 @@ public class ClusterNodeManager extends AbstractNodeManager {
 	}
 
 	@Override
+	public ClusterInfo getClusterInfo() {
+		return new ClusterInfo();
+	}
+
+	@Override
 	public NodeProtocolManager getNodeProtocolManager() {
 		return nodeProtocolManager;
 	}
-	
+
 	@Override
 	public NodeEventManager getNodeEventManager() {
-		return localNode.getNodeEventManager();
+		return clusterNodes.getLocalNode().getNodeEventManager();
 	}
 
 	@Override
@@ -85,7 +87,7 @@ public class ClusterNodeManager extends AbstractNodeManager {
 
 	@Override
 	protected void doStart() {
-		localNode.start();
+		clusterNodes.getLocalNode().start();
 		nodeProtocolManager.start();
 		nodeDiscovery.start();
 	}
@@ -98,8 +100,8 @@ public class ClusterNodeManager extends AbstractNodeManager {
 		if (null != nodeProtocolManager) {
 			nodeProtocolManager.stop();
 		}
-		if (null != localNode) {
-			localNode.stop();
+		if (null != clusterNodes.getLocalNode()) {
+			clusterNodes.getLocalNode().stop();
 		}
 	}
 }
