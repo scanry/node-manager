@@ -11,34 +11,32 @@ import com.six.node_manager.core.AbstractService;
 import com.six.node_manager.core.ClusterNodes;
 import com.six.node_manager.core.Node;
 import com.six.node_manager.discovery.AbstractNodeDiscovery;
+
 /**
  * @author sixliu
  * @date 2018年1月22日
  * @email 359852326@qq.com
  * @Description
  */
-public abstract class AbstractNodeRole extends AbstractService implements NodeRole{
+public abstract class AbstractNodeRole extends AbstractService implements NodeRole {
 
 	private static Logger log = LoggerFactory.getLogger(AbstractNodeRole.class);
-	protected Node node;
 	private NodeInfo master;
-	private ClusterNodes clusterNodes; 
+	private ClusterNodes clusterNodes;
 	private AbstractNodeDiscovery nodeDiscovery;
 	private NodeProtocolManager nodeProtocolManager;
 	private Thread workThread;
 	private long workInterval;
 
-	public AbstractNodeRole(String name, Node node, NodeInfo master,ClusterNodes clusterNodes, AbstractNodeDiscovery nodeDiscovery,
-			NodeProtocolManager nodeProtocolManager,long workInterval) {
+	public AbstractNodeRole(String name,NodeInfo master, ClusterNodes clusterNodes,
+			AbstractNodeDiscovery nodeDiscovery, NodeProtocolManager nodeProtocolManager, long workInterval) {
 		super(name);
-		Objects.requireNonNull(node);
 		Objects.requireNonNull(master);
 		Objects.requireNonNull(clusterNodes);
 		Objects.requireNonNull(nodeDiscovery);
 		Objects.requireNonNull(nodeProtocolManager);
-		this.node = node;
 		this.master = master;
-		this.clusterNodes=clusterNodes;
+		this.clusterNodes = clusterNodes;
 		this.nodeDiscovery = nodeDiscovery;
 		this.nodeProtocolManager = nodeProtocolManager;
 		this.workThread = new Thread(() -> {
@@ -80,7 +78,7 @@ public abstract class AbstractNodeRole extends AbstractService implements NodeRo
 
 	@Override
 	public final Node getNode() {
-		return node;
+		return clusterNodes.getLocalNode();
 	}
 
 	@Override

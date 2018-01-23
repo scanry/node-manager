@@ -11,7 +11,6 @@ import com.six.node_manager.NodeEvent;
 import com.six.node_manager.NodeEventType;
 import com.six.node_manager.NodeInfo;
 import com.six.node_manager.NodeProtocolManager;
-import com.six.node_manager.core.Node;
 import com.six.node_manager.discovery.AbstractNodeDiscovery;
 import com.six.node_manager.discovery.SlaveNodeDiscoveryProtocol;
 import com.six.node_manager.core.ClusterNodes;
@@ -32,10 +31,10 @@ public class MasterNodeRole extends AbstractNodeRole implements NodeRole {
 	private ClusterNodes clusterNodes;
 	private List<String> tempMissNodeNames;
 
-	public MasterNodeRole(Node node, NodeInfo master, AbstractNodeDiscovery nodeDiscovery,
+	public MasterNodeRole(NodeInfo master, AbstractNodeDiscovery nodeDiscovery,
 			NodeProtocolManager nodeProtocolManager, ClusterNodes clusterNodes, long heartbeatInterval,
 			int allowHeartbeatErrCount) {
-		super("master-node-role", node, master,clusterNodes, nodeDiscovery, nodeProtocolManager, heartbeatInterval);
+		super("master-node-role",master,clusterNodes, nodeDiscovery, nodeProtocolManager, heartbeatInterval);
 		this.clusterNodes = clusterNodes;
 		this.heartbeatInterval = heartbeatInterval;
 		this.allowHeartbeatErrCount = allowHeartbeatErrCount;

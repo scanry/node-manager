@@ -10,7 +10,6 @@ import com.six.node_manager.NodeInfo;
 import com.six.node_manager.NodeProtocolManager;
 import com.six.node_manager.NodeResource;
 import com.six.node_manager.core.ClusterNodes;
-import com.six.node_manager.core.Node;
 import com.six.node_manager.discovery.AbstractNodeDiscovery;
 import com.six.node_manager.discovery.SlaveNodeDiscoveryProtocol;
 
@@ -28,9 +27,9 @@ public class SlaveNodeRole extends AbstractNodeRole implements NodeRole {
 	private int heartbeatErrCount;
 	private AtomicBoolean masterOk = new AtomicBoolean(true);
 
-	public SlaveNodeRole(Node node, NodeInfo master, ClusterNodes clusterNodes, AbstractNodeDiscovery nodeDiscovery,
+	public SlaveNodeRole(NodeInfo master, ClusterNodes clusterNodes, AbstractNodeDiscovery nodeDiscovery,
 			NodeProtocolManager nodeProtocolManager, long heartbeatInterval, int allowHeartbeatErrCount) {
-		super("slave-node-role", node, master, clusterNodes, nodeDiscovery, nodeProtocolManager, heartbeatInterval);
+		super("slave-node-role",master, clusterNodes, nodeDiscovery, nodeProtocolManager, heartbeatInterval);
 		this.allowHeartbeatErrCount = allowHeartbeatErrCount;
 		nodeProtocolManager.registerNodeRpcProtocol(SlaveNodeRoleProtocol.class, new SlaveNodeRoleProtocolImpl(this));
 	}
