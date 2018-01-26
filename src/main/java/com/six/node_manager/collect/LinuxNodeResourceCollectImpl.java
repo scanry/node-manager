@@ -1,8 +1,6 @@
 package com.six.node_manager.collect;
 
 
-import java.util.Comparator;
-
 import com.six.node_manager.NodeResource;
 import com.six.node_manager.NodeResourceCollect;
 
@@ -20,12 +18,5 @@ public class LinuxNodeResourceCollectImpl implements NodeResourceCollect {
 		nodeResource.setNodeName(nodeName);
 		return nodeResource;
 	}
-
-	@Override
-	public Comparator<NodeResource> getComparator() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 }
 

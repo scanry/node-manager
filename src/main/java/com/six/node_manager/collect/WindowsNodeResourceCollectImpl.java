@@ -3,7 +3,6 @@ package com.six.node_manager.collect;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.lang.management.MemoryUsage;
-import java.util.Comparator;
 
 import com.six.node_manager.NodeResource;
 import com.six.node_manager.NodeResourceCollect;
@@ -30,12 +29,6 @@ public class WindowsNodeResourceCollectImpl implements NodeResourceCollect {
 		long memoryUsed = heapMemoryUsage.getUsed();
 		nodeResource.setMemoryUSeRate(memoryUsed / memoryMax);
 		return nodeResource;
-	}
-
-	@Override
-	public Comparator<NodeResource> getComparator() {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 }

@@ -1,6 +1,5 @@
 package com.six.node_manager;
 
-import java.util.Comparator;
 
 /**
  * @author sixliu
@@ -11,6 +10,4 @@ import java.util.Comparator;
 public interface NodeResourceCollect{
 
 	NodeResource collect(String nodeName);
-	
-	Comparator<NodeResource> getComparator();
 }
