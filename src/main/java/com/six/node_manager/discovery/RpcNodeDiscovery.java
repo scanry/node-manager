@@ -13,6 +13,7 @@ import com.six.node_manager.NodeInfo;
 import com.six.node_manager.NodeProtocolManager;
 import com.six.node_manager.NodeState;
 import com.six.node_manager.core.ClusterNodes;
+import com.six.node_manager.core.SpiExtension;
 
 /**
  * @author sixliu
@@ -23,7 +24,7 @@ import com.six.node_manager.core.ClusterNodes;
 public class RpcNodeDiscovery extends AbstractNodeDiscovery {
 
 	private static Logger log = LoggerFactory.getLogger(RpcNodeDiscovery.class);
-
+	private NodeProtocolManager nodeProtocolManager=SpiExtension.getInstance().find(NodeProtocolManager.class);
 	private LinkedBlockingQueue<MasterProposal> revMasterProposalQueue = new LinkedBlockingQueue<>();
 	private MasterProposal currentMasterProposal;
 	private AtomicInteger logicClock = new AtomicInteger(0);
@@ -31,9 +32,8 @@ public class RpcNodeDiscovery extends AbstractNodeDiscovery {
 	private final static int finalizeWait = 200;
 	private final static int IGNOREVALUE = -1;
 
-	public RpcNodeDiscovery(ClusterNodes clusterNodes, Map<String, NodeInfo> needDiscoveryNodeInfos,
-			NodeProtocolManager nodeProtocolManager, long heartbeatInterval, int allowHeartbeatErrCount) {
-		super(clusterNodes, nodeProtocolManager, heartbeatInterval, allowHeartbeatErrCount);
+	public RpcNodeDiscovery(ClusterNodes clusterNodes, Map<String, NodeInfo> needDiscoveryNodeInfos,long heartbeatInterval, int allowHeartbeatErrCount) {
+		super(clusterNodes,heartbeatInterval, allowHeartbeatErrCount);
 		nodeProtocolManager.registerNodeRpcProtocol(RpcNodeDiscoveryProtocol.class, new RpcNodeDiscoveryProtocolImpl());
 	}
 
@@ -180,7 +180,7 @@ public class RpcNodeDiscovery extends AbstractNodeDiscovery {
 	private void sendMasterProposal() {
 		getClusterNodes().forEachNeedDiscoveryNodeInfos((nodeName, nodeInfo) -> {
 			try {
-				RpcNodeDiscoveryProtocol rpcNodeDiscoveryProtocol = getNodeProtocolManager()
+				RpcNodeDiscoveryProtocol rpcNodeDiscoveryProtocol = nodeProtocolManager
 						.lookupNodeRpcProtocol(nodeInfo, RpcNodeDiscoveryProtocol.class, result -> {
 							if (result.isSuccessed()) {
 								log.info("rpc rpcNodeDiscoveryProtocol.sendMasterProposal[" + nodeInfo + "]successed");

@@ -3,6 +3,8 @@ package com.six.node_manager.core;
 import java.lang.management.ManagementFactory;
 
 import com.six.node_manager.NodeResourceCollect;
+import com.six.node_manager.collect.LinuxNodeResourceCollectImpl;
+import com.six.node_manager.collect.WindowsNodeResourceCollectImpl;
 
 /**   
  * @author sixliu   

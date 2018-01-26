@@ -9,7 +9,7 @@ package com.six.node_manager;
 public class NodeManagerTest2 {
 
 	public static void main(String[] args) {
-		NodeManagerBuilder builder = new NodeManagerBuilder();
+		NodeManagerLauncher builder = new NodeManagerLauncher();
 		builder.setClusterName("cluster");
 		builder.setNodeName("node2");
 		builder.setHost("127.0.0.1");

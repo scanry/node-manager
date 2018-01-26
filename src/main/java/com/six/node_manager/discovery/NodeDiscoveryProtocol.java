@@ -1,7 +1,6 @@
 package com.six.node_manager.discovery;
 
 import com.six.node_manager.NodeInfo;
-import com.six.node_manager.NodeResource;
 
 /**
  * @author sixliu
@@ -45,5 +44,4 @@ public interface NodeDiscoveryProtocol {
 	 */
 	NodeInfo getNewestLocalNode();
 	
-	void heartbeat(NodeResource nodeResource);
 }

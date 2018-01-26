@@ -1,4 +1,4 @@
-package com.six.node_manager.core;
+package com.six.node_manager.service;
 
 /**
  * @author sixliu
@@ -16,7 +16,7 @@ public interface Service {
 	 */
 	public enum State {
 
-		INIT, START, STOP, FAILED;
+		INIT,START, STOP, FAILED;
 	}
 
 	/**

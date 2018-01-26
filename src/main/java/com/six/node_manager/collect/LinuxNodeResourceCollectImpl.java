@@ -1,4 +1,4 @@
-package com.six.node_manager.core;
+package com.six.node_manager.collect;
 
 
 import java.util.Comparator;

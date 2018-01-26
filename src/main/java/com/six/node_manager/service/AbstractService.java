@@ -1,4 +1,4 @@
-package com.six.node_manager.core;
+package com.six.node_manager.service;
 
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
@@ -43,7 +43,7 @@ public abstract class AbstractService implements Service {
 
 	@Override
 	public final void start() {
-		if (State.START != state && STATE_UPDATE.compareAndSet(this, State.INIT, State.START)) {
+		if (STATE_UPDATE.compareAndSet(this, State.INIT, State.START)) {
 			log.info("will start service[" + getName() + "]");
 			doStart();
 			log.info("started service[" + getName() + "]");

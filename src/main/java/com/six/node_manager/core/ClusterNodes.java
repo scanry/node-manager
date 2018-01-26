@@ -6,8 +6,12 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.function.BiConsumer;
 
+import com.six.node_manager.NodeEvent;
+import com.six.node_manager.NodeEventManager;
+import com.six.node_manager.NodeEventType;
 import com.six.node_manager.NodeInfo;
 import com.six.node_manager.NodeResource;
+import com.six.node_manager.role.Node;
 
 /**
  * @author sixliu
@@ -21,8 +25,9 @@ public class ClusterNodes {
 	public static interface MoreThanHalfProcess {
 		void process();
 	}
-
+	private NodeEventManager nodeEventManager=SpiExtension.getInstance().find(NodeEventManager.class);
 	private Node localNode;
+	private volatile NodeInfo masterNodeInfo;
 	private Map<String, NodeInfo> needDiscoveryNodeInfos;
 	private final int configNodeSize;
 	// 加入的slave节点信息
@@ -51,6 +56,14 @@ public class ClusterNodes {
 
 	public NodeInfo getLocalNodeInfo() {
 		return localNode.nodeInfo();
+	}
+	
+	public NodeInfo getMasterInfo() {
+		return masterNodeInfo;
+	}
+	
+	public void setMasterInfo(NodeInfo masterNodeInfo) {
+		this.masterNodeInfo=masterNodeInfo;
 	}
 
 	public int configNodeSize() {
@@ -99,6 +112,7 @@ public class ClusterNodes {
 		synchronized (joinSlaveNodeInfos) {
 			joinSlaveNodeInfos.put(nodeInfo.getName(), nodeInfo);
 		}
+		nodeEventManager.addNodeEvent(new NodeEvent(NodeEventType.SLAVE_JOIN, nodeInfo));
 	}
 
 	public NodeInfo removeJoinSlaveNodeInfos(String nodeName) {
@@ -135,6 +149,7 @@ public class ClusterNodes {
 		synchronized (missSlaveNodeInfos) {
 			missSlaveNodeInfos.put(nodeInfo.getName(), nodeInfo);
 		}
+		nodeEventManager.addNodeEvent(new NodeEvent(NodeEventType.MISS_SLAVE, nodeInfo));
 	}
 
 	public NodeInfo removeMissSlaveNodeInfos(String nodeName) {

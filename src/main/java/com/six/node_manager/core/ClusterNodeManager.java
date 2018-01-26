@@ -11,6 +11,7 @@ import com.six.node_manager.NodeEventManager;
 import com.six.node_manager.NodeInfo;
 import com.six.node_manager.NodeManager;
 import com.six.node_manager.NodeProtocolManager;
+import com.six.node_manager.service.AbstractService;
 
 /**
  * @author sixliu
@@ -20,16 +21,12 @@ import com.six.node_manager.NodeProtocolManager;
  */
 public class ClusterNodeManager extends AbstractService implements NodeManager {
 
-	private ClusterNodes clusterNodes;
-	private NodeProtocolManager nodeProtocolManager;
-	private NodeDiscovery nodeDiscovery;
+	private NodeEventManager nodeEventManager=SpiExtension.getInstance().find(NodeEventManager.class);
+	private NodeProtocolManager nodeProtocolManager=SpiExtension.getInstance().find(NodeProtocolManager.class);
+	private NodeDiscovery nodeDiscovery=SpiExtension.getInstance().find(NodeDiscovery.class);
 
-	public ClusterNodeManager(ClusterNodes clusterNodes, NodeProtocolManager nodeProtocolManager,
-			NodeDiscovery nodeDiscovery) {
+	public ClusterNodeManager() {
 		super("nodeManager");
-		this.clusterNodes = clusterNodes;
-		this.nodeProtocolManager = nodeProtocolManager;
-		this.nodeDiscovery = nodeDiscovery;
 	}
 
 	@Override
@@ -64,7 +61,7 @@ public class ClusterNodeManager extends AbstractService implements NodeManager {
 
 	@Override
 	public NodeEventManager getNodeEventManager() {
-		return clusterNodes.getLocalNode().getNodeEventManager();
+		return nodeEventManager;
 	}
 
 	@Override
@@ -87,21 +84,11 @@ public class ClusterNodeManager extends AbstractService implements NodeManager {
 
 	@Override
 	protected void doStart() {
-		clusterNodes.getLocalNode().start();
-		nodeProtocolManager.start();
-		nodeDiscovery.start();
+		SpiExtension.getInstance().startAll();
 	}
 
 	@Override
 	protected void doStop() {
-		if (null != nodeDiscovery) {
-			nodeDiscovery.stop();
-		}
-		if (null != nodeProtocolManager) {
-			nodeProtocolManager.stop();
-		}
-		if (null != clusterNodes.getLocalNode()) {
-			clusterNodes.getLocalNode().stop();
-		}
+		SpiExtension.getInstance().stopAll();
 	}
 }

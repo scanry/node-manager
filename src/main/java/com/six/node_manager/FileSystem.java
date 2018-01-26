@@ -6,5 +6,9 @@ package com.six.node_manager;
 */
 public interface FileSystem {
 
+	DcsFile find(String path);
 	
+	void create(DcsFile file);
+	
+	int delete(String path);
 }

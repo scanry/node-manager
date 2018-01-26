@@ -5,6 +5,7 @@ import java.util.concurrent.ExecutorService;
 
 import com.six.node_manager.NodeInfo;
 import com.six.node_manager.NodeProtocolManager;
+import com.six.node_manager.service.AbstractService;
 
 import six.com.rpc.AsyCallback;
 import six.com.rpc.RpcClient;

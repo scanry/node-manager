@@ -1,15 +1,12 @@
-package com.six.node_manager.core;
+package com.six.node_manager.role;
 
-import java.util.Comparator;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
 import com.six.node_manager.NodeInfo;
-import com.six.node_manager.NodeResource;
-import com.six.node_manager.NodeResourceCollect;
 import com.six.node_manager.NodeState;
+import com.six.node_manager.core.SpiExtension;
 import com.six.node_manager.NodeEvent;
-import com.six.node_manager.NodeEventListen;
 import com.six.node_manager.NodeEventManager;
 import com.six.node_manager.NodeEventType;
 
@@ -19,7 +16,7 @@ import com.six.node_manager.NodeEventType;
  * @email 359852326@qq.com
  * @Description
  */
-public class Node extends AbstractService implements NodeEventManager, NodeResourceCollect, Service {
+public class Node{
 
 	private static volatile Node single;
 	private final String clusterName;
@@ -31,15 +28,14 @@ public class Node extends AbstractService implements NodeEventManager, NodeResou
 	private AtomicReferenceFieldUpdater<Node, NodeState> ATOMIC_STATE = AtomicReferenceFieldUpdater
 			.newUpdater(Node.class, NodeState.class, "state");
 	private volatile NodeState state = NodeState.LOOKING;
-	private NodeEventManager nodeEventManager;
-	private NodeResourceCollect nodeResourceCollect;
+	private NodeEventManager nodeEventManager=SpiExtension.getInstance().find(NodeEventManager.class);
 
-	public static Node getNode(NodeInfo nodeInfo, int nodeCount, NodeResourceCollect nodeResourceCollect) {
+	public static Node getNode(NodeInfo nodeInfo, int nodeCount) {
 		if (null == single) {
 			synchronized (Node.class) {
 				if (null == single) {
 					single = new Node(nodeInfo.getClusterName(), nodeInfo.getName(), nodeInfo.getHost(),
-							nodeInfo.getPort(), nodeInfo.getVersion(), nodeCount, nodeResourceCollect);
+							nodeInfo.getPort(), nodeInfo.getVersion(), nodeCount);
 				}
 			}
 
@@ -47,24 +43,20 @@ public class Node extends AbstractService implements NodeEventManager, NodeResou
 		return single;
 	}
 
-	private Node(String clusterName, String name, String host, int port, long version, int nodeCount,
-			NodeResourceCollect nodeResourceCollect) {
-		super(clusterName + "-" + name);
+	private Node(String clusterName, String name, String host, int port, long version, int nodeCount) {
 		this.clusterName = clusterName;
 		this.name = name;
 		this.host = host;
 		this.port = port;
 		this.version = new AtomicLong(version);
 		this.nodeCount = nodeCount;
-		this.nodeResourceCollect = nodeResourceCollect;
-		nodeEventManager = new NodeEventManagerImpl();
 	}
 
 	public String getClusterName() {
 		return clusterName;
 	}
 
-	public String getNodeName() {
+	public String getName() {
 		return name;
 	}
 
@@ -98,7 +90,7 @@ public class Node extends AbstractService implements NodeEventManager, NodeResou
 
 	public void looking() {
 		ATOMIC_STATE.set(this, NodeState.LOOKING);
-		addNodeEvent(new NodeEvent(NodeEventType.BECOME_LOOKING, nodeInfo()));
+		nodeEventManager.addNodeEvent(new NodeEvent(NodeEventType.BECOME_LOOKING, nodeInfo()));
 	}
 
 	public boolean isMaster() {
@@ -108,9 +100,9 @@ public class Node extends AbstractService implements NodeEventManager, NodeResou
 	public void master() {
 		ATOMIC_STATE.set(this, NodeState.MASTER);
 		if (isSlave()) {
-			addNodeEvent(new NodeEvent(NodeEventType.RUNTIME_BECAOME_MASTER, nodeInfo()));
+			nodeEventManager.addNodeEvent(new NodeEvent(NodeEventType.RUNTIME_BECAOME_MASTER, nodeInfo()));
 		} else {
-			addNodeEvent(new NodeEvent(NodeEventType.INIT_BECOME_MASTER, nodeInfo()));
+			nodeEventManager.addNodeEvent(new NodeEvent(NodeEventType.INIT_BECOME_MASTER, nodeInfo()));
 		}
 
 	}
@@ -121,7 +113,7 @@ public class Node extends AbstractService implements NodeEventManager, NodeResou
 
 	public void slave() {
 		ATOMIC_STATE.set(this, NodeState.SLAVE);
-		addNodeEvent(new NodeEvent(NodeEventType.BECOME_SLAVE, nodeInfo()));
+		nodeEventManager.addNodeEvent(new NodeEvent(NodeEventType.BECOME_SLAVE, nodeInfo()));
 	}
 
 	public NodeInfo nodeInfo() {
@@ -134,48 +126,4 @@ public class Node extends AbstractService implements NodeEventManager, NodeResou
 		nodeInfo.setVersion(getVersion());
 		return nodeInfo;
 	}
-
-	public NodeResourceCollect getNodeResourceCollect() {
-		return nodeResourceCollect;
-	}
-
-	public NodeEventManager getNodeEventManager() {
-		return nodeEventManager;
-	}
-
-	@Override
-	public boolean addNodeEvent(NodeEvent nodeEvent) {
-		return nodeEventManager.addNodeEvent(nodeEvent);
-	}
-
-	@Override
-	public void registerNodeEventListen(NodeEventType event, NodeEventListen nodeListen) {
-		nodeEventManager.registerNodeEventListen(event, nodeListen);
-	}
-
-	@Override
-	public void unregisterNodeEventListen(NodeEventType event, NodeEventListen nodeListen) {
-		nodeEventManager.unregisterNodeEventListen(event, nodeListen);
-	}
-
-	@Override
-	protected void doStart() {
-		nodeEventManager.start();
-	}
-
-	@Override
-	protected void doStop() {
-		nodeEventManager.stop();
-	}
-
-	@Override
-	public NodeResource collect(String nodeName) {
-		return nodeResourceCollect.collect(nodeName);
-	}
-
-	@Override
-	public Comparator<NodeResource> getComparator() {
-		return nodeResourceCollect.getComparator();
-	}
-
 }

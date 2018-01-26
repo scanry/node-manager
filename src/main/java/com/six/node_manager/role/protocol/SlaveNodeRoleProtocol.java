@@ -1,4 +1,4 @@
-package com.six.node_manager.role;
+package com.six.node_manager.role.protocol;
 
 
 /**   
@@ -9,6 +9,6 @@ package com.six.node_manager.role;
  */
 public interface SlaveNodeRoleProtocol {
 
-	boolean masterIsOk();
+	void syn();
 }
 

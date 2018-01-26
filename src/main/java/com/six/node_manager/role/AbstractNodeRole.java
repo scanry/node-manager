@@ -7,10 +7,9 @@ import org.slf4j.LoggerFactory;
 
 import com.six.node_manager.NodeInfo;
 import com.six.node_manager.NodeProtocolManager;
-import com.six.node_manager.core.AbstractService;
 import com.six.node_manager.core.ClusterNodes;
-import com.six.node_manager.core.Node;
-import com.six.node_manager.discovery.AbstractNodeDiscovery;
+import com.six.node_manager.core.SpiExtension;
+import com.six.node_manager.service.AbstractService;
 
 /**
  * @author sixliu
@@ -23,27 +22,27 @@ public abstract class AbstractNodeRole extends AbstractService implements NodeRo
 	private static Logger log = LoggerFactory.getLogger(AbstractNodeRole.class);
 	private NodeInfo master;
 	private ClusterNodes clusterNodes;
-	private AbstractNodeDiscovery nodeDiscovery;
-	private NodeProtocolManager nodeProtocolManager;
+	private NodeProtocolManager nodeProtocolManager=SpiExtension.getInstance().find(NodeProtocolManager.class);
 	private Thread workThread;
-	private long workInterval;
+	// 从节点向主节点心跳间隔
+	private long heartbeatInterval;
+	// 允许从节点向主节点心跳异常次数
+	private int allowHeartbeatErrCount;
+	private long allowMaxHeartbeatInterval;
 
-	public AbstractNodeRole(String name,NodeInfo master, ClusterNodes clusterNodes,
-			AbstractNodeDiscovery nodeDiscovery, NodeProtocolManager nodeProtocolManager, long workInterval) {
+	public AbstractNodeRole(String name,NodeInfo master, ClusterNodes clusterNodes,long heartbeatInterval,int allowHeartbeatErrCount) {
 		super(name);
 		Objects.requireNonNull(master);
 		Objects.requireNonNull(clusterNodes);
-		Objects.requireNonNull(nodeDiscovery);
-		Objects.requireNonNull(nodeProtocolManager);
 		this.master = master;
-		this.clusterNodes = clusterNodes;
-		this.nodeDiscovery = nodeDiscovery;
-		this.nodeProtocolManager = nodeProtocolManager;
+		this.clusterNodes=clusterNodes;
+		this.heartbeatInterval = heartbeatInterval;
+		this.allowHeartbeatErrCount = allowHeartbeatErrCount;
+		this.allowMaxHeartbeatInterval=allowHeartbeatErrCount*heartbeatInterval;
 		this.workThread = new Thread(() -> {
 			work();
 		}, "NodeDiscovery-heartbeat-to-master-thread");
 		this.workThread.setDaemon(true);
-		this.workInterval = workInterval;
 	}
 
 	public void work() {
@@ -57,7 +56,7 @@ public abstract class AbstractNodeRole extends AbstractService implements NodeRo
 			}
 
 			try {
-				Thread.sleep(workInterval);
+				Thread.sleep(heartbeatInterval);
 			} catch (Exception e) {
 				// ignore
 			}
@@ -68,10 +67,12 @@ public abstract class AbstractNodeRole extends AbstractService implements NodeRo
 
 	protected abstract void doWork();
 
+	@Override
 	protected void doStart() {
 		this.workThread.start();
 	}
 
+	@Override
 	protected void doStop() {
 		workThread.interrupt();
 	}
@@ -86,15 +87,24 @@ public abstract class AbstractNodeRole extends AbstractService implements NodeRo
 		return master;
 	}
 
-	protected ClusterNodes getClusterNodes() {
+	@Override
+	public final ClusterNodes getClusterNodes() {
 		return clusterNodes;
-	}
-
-	protected AbstractNodeDiscovery getNodeDiscovery() {
-		return nodeDiscovery;
 	}
 
 	protected NodeProtocolManager getNodeProtocolManager() {
 		return nodeProtocolManager;
+	}
+	
+	protected long getHeartbeatInterval() {
+		return heartbeatInterval;
+	}
+	
+	protected int getAllowHeartbeatErrCount() {
+		return allowHeartbeatErrCount;
+	}
+	
+	protected long getAllowMaxHeartbeatInterval() {
+		return allowMaxHeartbeatInterval;
 	}
 }

@@ -1,6 +1,6 @@
 package com.six.node_manager;
 
-import com.six.node_manager.core.Service;
+import com.six.node_manager.service.Service;
 
 /**
  * @author sixliu

@@ -1,8 +1,8 @@
 package com.six.node_manager.role;
 
 import com.six.node_manager.NodeInfo;
-import com.six.node_manager.core.Node;
-import com.six.node_manager.core.Service;
+import com.six.node_manager.core.ClusterNodes;
+import com.six.node_manager.service.Service;
 
 /**
  * @author sixliu E-mail:359852326@qq.com
@@ -14,11 +14,17 @@ public interface NodeRole extends Service {
 
 	NodeInfo getMaster();
 	
+	ClusterNodes getClusterNodes();
+	
+	void join();
+	
 	void work();
 
 	void write(Writer writer);
 
 	void syn();
+	
+	void leave();
 
 	@FunctionalInterface
 	public interface Writer {
