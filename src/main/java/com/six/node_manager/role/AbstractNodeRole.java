@@ -22,7 +22,7 @@ public abstract class AbstractNodeRole extends AbstractService implements NodeRo
 	private static Logger log = LoggerFactory.getLogger(AbstractNodeRole.class);
 	private NodeInfo master;
 	private ClusterNodes clusterNodes;
-	private NodeProtocolManager nodeProtocolManager=SpiExtension.getInstance().find(NodeProtocolManager.class);
+	private NodeProtocolManager nodeProtocolManager = SpiExtension.getInstance().find(NodeProtocolManager.class);
 	private Thread workThread;
 	// 从节点向主节点心跳间隔
 	private long heartbeatInterval;
@@ -30,15 +30,16 @@ public abstract class AbstractNodeRole extends AbstractService implements NodeRo
 	private int allowHeartbeatErrCount;
 	private long allowMaxHeartbeatInterval;
 
-	public AbstractNodeRole(String name,NodeInfo master, ClusterNodes clusterNodes,long heartbeatInterval,int allowHeartbeatErrCount) {
+	public AbstractNodeRole(String name, NodeInfo master, ClusterNodes clusterNodes, long heartbeatInterval,
+			int allowHeartbeatErrCount) {
 		super(name);
 		Objects.requireNonNull(master);
 		Objects.requireNonNull(clusterNodes);
 		this.master = master;
-		this.clusterNodes=clusterNodes;
+		this.clusterNodes = clusterNodes;
 		this.heartbeatInterval = heartbeatInterval;
 		this.allowHeartbeatErrCount = allowHeartbeatErrCount;
-		this.allowMaxHeartbeatInterval=allowHeartbeatErrCount*heartbeatInterval;
+		this.allowMaxHeartbeatInterval = allowHeartbeatErrCount * heartbeatInterval;
 		this.workThread = new Thread(() -> {
 			work();
 		}, "NodeDiscovery-heartbeat-to-master-thread");
@@ -75,6 +76,7 @@ public abstract class AbstractNodeRole extends AbstractService implements NodeRo
 	@Override
 	protected void doStop() {
 		workThread.interrupt();
+		leave();
 	}
 
 	@Override
@@ -95,15 +97,15 @@ public abstract class AbstractNodeRole extends AbstractService implements NodeRo
 	protected NodeProtocolManager getNodeProtocolManager() {
 		return nodeProtocolManager;
 	}
-	
+
 	protected long getHeartbeatInterval() {
 		return heartbeatInterval;
 	}
-	
+
 	protected int getAllowHeartbeatErrCount() {
 		return allowHeartbeatErrCount;
 	}
-	
+
 	protected long getAllowMaxHeartbeatInterval() {
 		return allowMaxHeartbeatInterval;
 	}

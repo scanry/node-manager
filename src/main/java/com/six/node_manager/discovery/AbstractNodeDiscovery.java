@@ -18,6 +18,8 @@ import com.six.node_manager.NodeProtocolManager;
 import com.six.node_manager.NodeState;
 import com.six.node_manager.core.ClusterNodes;
 import com.six.node_manager.core.SpiExtension;
+import com.six.node_manager.discovery.protocol.NodeDiscoveryProtocol;
+import com.six.node_manager.discovery.protocol.NodeDiscoveryProtocolImpl;
 import com.six.node_manager.role.LookingNodeRole;
 import com.six.node_manager.role.MasterNodeRole;
 import com.six.node_manager.role.Node;
@@ -34,8 +36,8 @@ import com.six.node_manager.service.AbstractService;
 public abstract class AbstractNodeDiscovery extends AbstractService implements NodeDiscovery {
 
 	private static Logger log = LoggerFactory.getLogger(AbstractNodeDiscovery.class);
-	private NodeEventManager nodeEventManager=SpiExtension.getInstance().find(NodeEventManager.class);
-	private NodeProtocolManager nodeProtocolManager=SpiExtension.getInstance().find(NodeProtocolManager.class);
+	private NodeEventManager nodeEventManager = SpiExtension.getInstance().find(NodeEventManager.class);
+	private NodeProtocolManager nodeProtocolManager = SpiExtension.getInstance().find(NodeProtocolManager.class);
 	private NodeDiscoveryProtocol nodeDiscoveryProtocol;
 	// 进群节点容器
 	private ClusterNodes clusterNodes;
@@ -46,14 +48,14 @@ public abstract class AbstractNodeDiscovery extends AbstractService implements N
 	private int allowHeartbeatErrCount;
 	private volatile NodeRole nodeRole;
 
-	public AbstractNodeDiscovery(ClusterNodes clusterNodes,
-			long heartbeatInterval, int allowHeartbeatErrCount) {
+	public AbstractNodeDiscovery(ClusterNodes clusterNodes, long heartbeatInterval, int allowHeartbeatErrCount) {
 		super("nodeDiscovery");
 		Objects.requireNonNull(clusterNodes);
 		this.clusterNodes = clusterNodes;
 		this.heartbeatInterval = heartbeatInterval;
 		this.allowHeartbeatErrCount = allowHeartbeatErrCount;
-		this.nodeRole=new LookingNodeRole(this.clusterNodes.getLocalNodeInfo(), clusterNodes, heartbeatInterval,allowHeartbeatErrCount);
+		this.nodeRole = new LookingNodeRole(this.clusterNodes.getLocalNodeInfo(), clusterNodes, heartbeatInterval,
+				allowHeartbeatErrCount);
 		this.electionThread = new Thread(() -> {
 			election();
 		}, "NodeDiscovery-election-thread");
@@ -70,7 +72,7 @@ public abstract class AbstractNodeDiscovery extends AbstractService implements N
 		});
 		electionThread.start();
 	}
-	
+
 	protected ClusterNodes getClusterNodes() {
 		return clusterNodes;
 	}
@@ -126,14 +128,12 @@ public abstract class AbstractNodeDiscovery extends AbstractService implements N
 
 	@Override
 	public final boolean isHealthy() {
-		return null!=nodeRole&&!clusterNodes.getLocalNode().isLooking();
+		return null != nodeRole && !clusterNodes.getLocalNode().isLooking();
 	}
 
 	@Override
 	protected final void doStop() {
-		if (null != nodeRole) {
-			nodeRole.leave();
-		}
+		notifyElection();
 	}
 
 	private void notifyElection() {
@@ -156,12 +156,10 @@ public abstract class AbstractNodeDiscovery extends AbstractService implements N
 					clusterNodes.setMasterInfo(master);
 					if (!getLocalNodeName().equals(master.getName())) {
 						clusterNodes.getLocalNode().slave();
-						nodeRole = new SlaveNodeRole(master,clusterNodes, heartbeatInterval,
-								allowHeartbeatErrCount);
+						nodeRole = new SlaveNodeRole(master, clusterNodes, heartbeatInterval, allowHeartbeatErrCount);
 					} else {
 						clusterNodes.getLocalNode().master();
-						nodeRole = new MasterNodeRole(master, clusterNodes,
-								heartbeatInterval, allowHeartbeatErrCount);
+						nodeRole = new MasterNodeRole(master, clusterNodes, heartbeatInterval, allowHeartbeatErrCount);
 					}
 					nodeRole.join();
 					nodeRole.start();

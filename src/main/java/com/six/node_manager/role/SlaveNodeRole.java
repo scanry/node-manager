@@ -1,6 +1,5 @@
 package com.six.node_manager.role;
 
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,7 +10,7 @@ import com.six.node_manager.core.SpiExtension;
 import com.six.node_manager.role.protocol.MasterNodeRoleProtocol;
 import com.six.node_manager.role.protocol.SlaveNodeRoleProtocol;
 import com.six.node_manager.role.protocol.SlaveNodeRoleProtocolImpl;
-import  com.six.node_manager.NodeResourceCollect;
+import com.six.node_manager.NodeResourceCollect;
 
 /**
  * @author sixliu
@@ -22,24 +21,26 @@ import  com.six.node_manager.NodeResourceCollect;
 public class SlaveNodeRole extends AbstractNodeRole implements NodeRole {
 
 	static Logger log = LoggerFactory.getLogger(SlaveNodeRole.class);
-	private NodeResourceCollect resourceCollect=SpiExtension.getInstance().find(NodeResourceCollect.class);
+	private NodeResourceCollect resourceCollect = SpiExtension.getInstance().find(NodeResourceCollect.class);
 	// 允许从节点向主节点心跳异常次数
 	private int allowHeartbeatErrCount;
 	private int heartbeatErrCount;
-	
-	public SlaveNodeRole(NodeInfo master, ClusterNodes clusterNodes, long heartbeatInterval, int allowHeartbeatErrCount) {
-		super("slave-node-role",master, clusterNodes, heartbeatInterval,allowHeartbeatErrCount);
+
+	public SlaveNodeRole(NodeInfo master, ClusterNodes clusterNodes, long heartbeatInterval,
+			int allowHeartbeatErrCount) {
+		super("slave-node-role", master, clusterNodes, heartbeatInterval, allowHeartbeatErrCount);
 		this.allowHeartbeatErrCount = allowHeartbeatErrCount;
-		getNodeProtocolManager().registerNodeRpcProtocol(SlaveNodeRoleProtocol.class, new SlaveNodeRoleProtocolImpl(this));
+		getNodeProtocolManager().registerNodeRpcProtocol(SlaveNodeRoleProtocol.class,
+				new SlaveNodeRoleProtocolImpl(this));
 	}
 
 	@Override
 	public void join() {
-		MasterNodeRoleProtocol masterNodeRoleProtocol = getNodeProtocolManager()
-				.lookupNodeRpcProtocol(getMaster(), MasterNodeRoleProtocol.class);
+		MasterNodeRoleProtocol masterNodeRoleProtocol = getNodeProtocolManager().lookupNodeRpcProtocol(getMaster(),
+				MasterNodeRoleProtocol.class);
 		masterNodeRoleProtocol.join(getNode().nodeInfo());
 	}
-	
+
 	@Override
 	protected boolean checkState() {
 		return getNode().isSlave();
@@ -48,7 +49,7 @@ public class SlaveNodeRole extends AbstractNodeRole implements NodeRole {
 	@Override
 	protected void doWork() {
 		try {
-			NodeResource nodeResource =resourceCollect.collect(getNode().getName());
+			NodeResource nodeResource = resourceCollect.collect(getNode().getName());
 			MasterNodeRoleProtocol rpcNodeDiscoveryProtocol = getNodeProtocolManager()
 					.lookupNodeRpcProtocol(getMaster(), MasterNodeRoleProtocol.class);
 			rpcNodeDiscoveryProtocol.heartbeat(nodeResource);
@@ -74,8 +75,8 @@ public class SlaveNodeRole extends AbstractNodeRole implements NodeRole {
 
 	@Override
 	public void leave() {
-		MasterNodeRoleProtocol masterNodeRoleProtocol = getNodeProtocolManager()
-				.lookupNodeRpcProtocol(getMaster(), MasterNodeRoleProtocol.class);
-		masterNodeRoleProtocol.leave(getNode().getName());
+		MasterNodeRoleProtocol masterNodeRoleProtocol = getNodeProtocolManager().lookupNodeRpcProtocol(getMaster(),
+				MasterNodeRoleProtocol.class);
+		masterNodeRoleProtocol.leave(getNode().nodeInfo());
 	}
 }

@@ -1,4 +1,4 @@
-package com.six.node_manager.discovery;
+package com.six.node_manager.discovery.protocol;
 
 import com.six.node_manager.NodeInfo;
 

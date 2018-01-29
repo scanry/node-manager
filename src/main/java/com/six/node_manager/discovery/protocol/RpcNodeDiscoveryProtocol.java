@@ -1,4 +1,6 @@
-package com.six.node_manager.discovery;
+package com.six.node_manager.discovery.protocol;
+
+import com.six.node_manager.discovery.MasterProposal;
 
 /**   
  * @author sixliu   
@@ -8,9 +10,6 @@ package com.six.node_manager.discovery;
  */
 public interface RpcNodeDiscoveryProtocol{
 
-	String getName();
-	
 	MasterProposal sendMasterProposal(MasterProposal masterProposal);
-	
 }
 

@@ -7,10 +7,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.six.node_manager.NodeInfo;
-import com.six.node_manager.discovery.NodeDiscoveryProtocol;
 import com.six.node_manager.role.protocol.MasterNodeRoleProtocol;
 import com.six.node_manager.role.protocol.MasterNodeRoleProtocolImpl;
 import com.six.node_manager.core.ClusterNodes;
+import com.six.node_manager.discovery.protocol.NodeDiscoveryProtocol;
 
 /**
  * @author sixliu
@@ -26,15 +26,18 @@ public class MasterNodeRole extends AbstractNodeRole implements NodeRole {
 
 	public MasterNodeRole(NodeInfo master, ClusterNodes clusterNodes, long heartbeatInterval,
 			int allowHeartbeatErrCount) {
-		super("master-node-role",master,clusterNodes, heartbeatInterval,allowHeartbeatErrCount);
+		super("master-node-role", master, clusterNodes, heartbeatInterval, allowHeartbeatErrCount);
 		this.clusterNodes = clusterNodes;
 		this.tempMissNodeNames = new LinkedList<>();
-		getNodeProtocolManager().registerNodeRpcProtocol(MasterNodeRoleProtocol.class, new MasterNodeRoleProtocolImpl(this));
+		getNodeProtocolManager().registerNodeRpcProtocol(MasterNodeRoleProtocol.class,
+				new MasterNodeRoleProtocolImpl(this));
 	}
 
 	@Override
-	public void join() {}
-	
+	public void join() {
+		// 不需要做任何处理，从节点做处理即可
+	}
+
 	@Override
 	protected boolean checkState() {
 		return getNode().isMaster();
@@ -52,10 +55,10 @@ public class MasterNodeRole extends AbstractNodeRole implements NodeRole {
 					NodeDiscoveryProtocol slaveNodeDiscoveryProtocol = getNodeProtocolManager()
 							.lookupNodeRpcProtocol(nodeInfo, NodeDiscoveryProtocol.class, result -> {
 								if (!result.isSuccessed()) {
-									tempMissNodeNames.add(nodeName);					
+									tempMissNodeNames.add(nodeName);
 									// 如果检查有一半从节点异常处理思考
 									clusterNodes.noMoreThanHalfProcess(clusterNodes.joinSlaveSize(), () -> {
-										getNode().looking();										
+										getNode().looking();
 									});
 								}
 							});
@@ -79,21 +82,24 @@ public class MasterNodeRole extends AbstractNodeRole implements NodeRole {
 
 	@Override
 	public final void write(Writer writer) {
-//		Set<NodeInfo> slaveNodes = clusterNodes.
-//		int successedCount = 0;
-//		for (NodeInfo slaveNode : slaveNodes) {
-//			writer.write(slaveNode);
-//			successedCount++;
-//		}
-//		if (successedCount >= slaveNodes.size() / 2 + 1) {
-//			// 只要大于n/2+1个就认为成功
-//		}
+		// Set<NodeInfo> slaveNodes = clusterNodes.
+		// int successedCount = 0;
+		// for (NodeInfo slaveNode : slaveNodes) {
+		// writer.write(slaveNode);
+		// successedCount++;
+		// }
+		// if (successedCount >= slaveNodes.size() / 2 + 1) {
+		// // 只要大于n/2+1个就认为成功
+		// }
 	}
 
 	@Override
 	public final void syn() {
 
 	}
+
 	@Override
-	public void leave() {}
+	public void leave() {
+		// 不需要做任何处理，从节点做处理即可
+	}
 }

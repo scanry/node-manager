@@ -14,7 +14,7 @@ public interface MasterNodeRoleProtocol {
 
 	void join(NodeInfo info);
 
-	void leave(String nodeName);
+	void leave(NodeInfo nodeInfo);
 	
 	void heartbeat(NodeResource nodeResource);
 }
