@@ -20,7 +20,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>six</groupId>
-			<artifactId>rpc</artifactId>
+			<artifactId>dove</artifactId>
 			<version>1.0</version>
 		</dependency>
 		<dependency>

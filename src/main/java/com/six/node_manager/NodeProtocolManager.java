@@ -2,9 +2,8 @@ package com.six.node_manager;
 
 import java.util.concurrent.ExecutorService;
 
+import com.six.dove.remote.AsyCallback;
 import com.six.node_manager.service.Service;
-
-import six.com.rpc.AsyCallback;
 
 /**
  * @author sixliu E-mail:359852326@qq.com

@@ -3,15 +3,14 @@ package com.six.node_manager.core;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 
+import com.six.dove.remote.AsyCallback;
+import com.six.dove.rpc.RpcClient;
+import com.six.dove.rpc.RpcServer;
+import com.six.dove.rpc.client.netty.NettyRpcCilent;
+import com.six.dove.rpc.server.netty.NettyRpcServer;
 import com.six.node_manager.NodeInfo;
 import com.six.node_manager.NodeProtocolManager;
 import com.six.node_manager.service.AbstractService;
-
-import six.com.rpc.AsyCallback;
-import six.com.rpc.RpcClient;
-import six.com.rpc.RpcServer;
-import six.com.rpc.client.netty.NettyRpcCilent;
-import six.com.rpc.server.netty.NettyRpcServer;
 
 /**
  * @author sixliu E-mail:359852326@qq.com
@@ -63,10 +62,10 @@ public class NodeProtocolManagerImpl extends AbstractService implements NodeProt
 	@Override
 	protected void doStop() {
 		if (null != client) {
-			client.shutdown();
+			client.stop();
 		}
 		if (null != server) {
-			server.shutdown();
+			server.stop();
 		}
 	}
 }
