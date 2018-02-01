@@ -4,10 +4,8 @@ import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 
 import com.six.dove.remote.AsyCallback;
-import com.six.dove.rpc.RpcClient;
-import com.six.dove.rpc.RpcServer;
-import com.six.dove.rpc.client.netty.NettyRpcCilent;
-import com.six.dove.rpc.server.netty.NettyRpcServer;
+import com.six.dove.rpc.client.DoveClient;
+import com.six.dove.rpc.server.DoveServer;
 import com.six.node_manager.NodeInfo;
 import com.six.node_manager.NodeProtocolManager;
 import com.six.node_manager.service.AbstractService;
@@ -18,13 +16,13 @@ import com.six.node_manager.service.AbstractService;
  */
 public class NodeProtocolManagerImpl extends AbstractService implements NodeProtocolManager {
 
-	private RpcServer server;
-	private RpcClient client;
+	private DoveServer server;
+	private DoveClient client;
 
 	public NodeProtocolManagerImpl(String localHost, int listenPort) {
 		super("NodeProtocolManager");
-		server = new NettyRpcServer(localHost, listenPort);
-		client = new NettyRpcCilent();
+		server = new DoveServer(localHost, listenPort);
+		client = new DoveClient();
 	}
 
 	@Override
