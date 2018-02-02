@@ -1,5 +1,6 @@
 package com.six.node_manager.role.protocol;
 
+import com.six.dove.rpc.annotation.DoveService;
 import com.six.node_manager.role.SlaveNodeRole;
 
 /**
@@ -9,6 +10,7 @@ import com.six.node_manager.role.SlaveNodeRole;
 *@version:
 *@describe //TODO
 */
+@DoveService(protocol=SlaveNodeRoleProtocol.class)
 public class SlaveNodeRoleProtocolImpl implements SlaveNodeRoleProtocol{
 	
 	private SlaveNodeRole slaveNodeRole;

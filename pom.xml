@@ -19,9 +19,9 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>six</groupId>
-			<artifactId>dove</artifactId>
-			<version>1.0</version>
+			<groupId>com.six</groupId>
+			<artifactId>rpc</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.projectlombok</groupId>

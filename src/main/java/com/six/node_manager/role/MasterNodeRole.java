@@ -7,7 +7,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.six.node_manager.NodeInfo;
-import com.six.node_manager.role.protocol.MasterNodeRoleProtocol;
 import com.six.node_manager.role.protocol.MasterNodeRoleProtocolImpl;
 import com.six.node_manager.core.ClusterNodes;
 import com.six.node_manager.discovery.protocol.NodeDiscoveryProtocol;
@@ -29,8 +28,7 @@ public class MasterNodeRole extends AbstractNodeRole implements NodeRole {
 		super("master-node-role", master, clusterNodes, heartbeatInterval, allowHeartbeatErrCount);
 		this.clusterNodes = clusterNodes;
 		this.tempMissNodeNames = new LinkedList<>();
-		getNodeProtocolManager().registerNodeRpcProtocol(MasterNodeRoleProtocol.class,
-				new MasterNodeRoleProtocolImpl(this));
+		getNodeProtocolManager().registerNodeRpcProtocol(new MasterNodeRoleProtocolImpl(this));
 	}
 
 	@Override

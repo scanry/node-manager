@@ -3,6 +3,7 @@ package com.six.node_manager.role.protocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.six.dove.rpc.annotation.DoveService;
 import com.six.node_manager.NodeInfo;
 import com.six.node_manager.NodeResource;
 import com.six.node_manager.NodeState;
@@ -13,8 +14,9 @@ import com.six.node_manager.role.MasterNodeRole;
  * @date:2018年1月26日
  * @E-mail:359852326@qq.com
  * @version:
- * @describe //TODO
+ * @describe //TODO 注意：当节点挂掉后，是否需要将注册的rpc服务取消掉，值得思考
  */
+@DoveService(protocol = MasterNodeRoleProtocol.class)
 public class MasterNodeRoleProtocolImpl implements MasterNodeRoleProtocol {
 
 	private static Logger log = LoggerFactory.getLogger(MasterNodeRoleProtocolImpl.class);

@@ -30,8 +30,7 @@ public class SlaveNodeRole extends AbstractNodeRole implements NodeRole {
 			int allowHeartbeatErrCount) {
 		super("slave-node-role", master, clusterNodes, heartbeatInterval, allowHeartbeatErrCount);
 		this.allowHeartbeatErrCount = allowHeartbeatErrCount;
-		getNodeProtocolManager().registerNodeRpcProtocol(SlaveNodeRoleProtocol.class,
-				new SlaveNodeRoleProtocolImpl(this));
+		getNodeProtocolManager().registerNodeRpcProtocol(new SlaveNodeRoleProtocolImpl(this));
 	}
 
 	@Override
@@ -78,5 +77,6 @@ public class SlaveNodeRole extends AbstractNodeRole implements NodeRole {
 		MasterNodeRoleProtocol masterNodeRoleProtocol = getNodeProtocolManager().lookupNodeRpcProtocol(getMaster(),
 				MasterNodeRoleProtocol.class);
 		masterNodeRoleProtocol.leave(getNode().nodeInfo());
+		getNodeProtocolManager().unregisterNodeRpcProtocol(SlaveNodeRoleProtocol.class);
 	}
 }

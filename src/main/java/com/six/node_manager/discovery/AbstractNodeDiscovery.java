@@ -18,7 +18,6 @@ import com.six.node_manager.NodeProtocolManager;
 import com.six.node_manager.NodeState;
 import com.six.node_manager.core.ClusterNodes;
 import com.six.node_manager.core.SpiExtension;
-import com.six.node_manager.discovery.protocol.NodeDiscoveryProtocol;
 import com.six.node_manager.discovery.protocol.NodeDiscoveryProtocolImpl;
 import com.six.node_manager.role.LookingNodeRole;
 import com.six.node_manager.role.MasterNodeRole;
@@ -38,7 +37,6 @@ public abstract class AbstractNodeDiscovery extends AbstractService implements N
 	private static Logger log = LoggerFactory.getLogger(AbstractNodeDiscovery.class);
 	private NodeEventManager nodeEventManager = SpiExtension.getInstance().find(NodeEventManager.class);
 	private NodeProtocolManager nodeProtocolManager = SpiExtension.getInstance().find(NodeProtocolManager.class);
-	private NodeDiscoveryProtocol nodeDiscoveryProtocol;
 	// 进群节点容器
 	private ClusterNodes clusterNodes;
 	/** 选举守护线程 **/
@@ -64,8 +62,7 @@ public abstract class AbstractNodeDiscovery extends AbstractService implements N
 
 	@Override
 	protected final void doStart() {
-		this.nodeDiscoveryProtocol = new NodeDiscoveryProtocolImpl(this);
-		nodeProtocolManager.registerNodeRpcProtocol(NodeDiscoveryProtocol.class, nodeDiscoveryProtocol);
+		nodeProtocolManager.registerNodeRpcProtocol(new NodeDiscoveryProtocolImpl(this));
 		nodeEventManager.registerNodeEventListen(NodeEventType.BECOME_LOOKING, node -> {
 			log.warn("node[" + node + "] was looking and notify to election");
 			notifyElection();

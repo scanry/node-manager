@@ -17,8 +17,8 @@ public interface NodeProtocolManager extends Service{
 	 * @param protocol
 	 *            服务协议
 	 */
-	<T>void registerNodeRpcProtocol(Class<T> protocol,T instance);
-
+	void registerNodeRpcProtocol(Object instance);
+	
 	/**
 	 * 注册本地协议服务
 	 * 
@@ -27,7 +27,7 @@ public interface NodeProtocolManager extends Service{
 	 * @param protocol
 	 *            服务协议
 	 */
-	<T>void registerNodeRpcProtocol(ExecutorService executorService, Class<T> protocol,T instance);
+	void registerNodeRpcProtocol(ExecutorService executorService,Object instance);
 
 	/**
 	 * 取消注册服务协议

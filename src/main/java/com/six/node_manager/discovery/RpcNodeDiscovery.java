@@ -9,6 +9,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.six.dove.rpc.annotation.DoveService;
 import com.six.node_manager.NodeInfo;
 import com.six.node_manager.NodeProtocolManager;
 import com.six.node_manager.NodeState;
@@ -36,7 +37,7 @@ public class RpcNodeDiscovery extends AbstractNodeDiscovery {
 	public RpcNodeDiscovery(ClusterNodes clusterNodes, Map<String, NodeInfo> needDiscoveryNodeInfos,
 			long heartbeatInterval, int allowHeartbeatErrCount) {
 		super(clusterNodes, heartbeatInterval, allowHeartbeatErrCount);
-		nodeProtocolManager.registerNodeRpcProtocol(RpcNodeDiscoveryProtocol.class, new RpcNodeDiscoveryProtocolImpl());
+		nodeProtocolManager.registerNodeRpcProtocol(new RpcNodeDiscoveryProtocolImpl());
 	}
 
 	@Override
@@ -210,6 +211,7 @@ public class RpcNodeDiscovery extends AbstractNodeDiscovery {
 		return masterProposal;
 	}
 
+	@DoveService(protocol=RpcNodeDiscoveryProtocol.class)
 	public class RpcNodeDiscoveryProtocolImpl implements RpcNodeDiscoveryProtocol {
 
 		@Override

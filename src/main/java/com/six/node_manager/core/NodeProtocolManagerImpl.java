@@ -4,8 +4,8 @@ import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 
 import com.six.dove.remote.AsyCallback;
-import com.six.dove.rpc.client.DoveClient;
-import com.six.dove.rpc.server.DoveServer;
+import com.six.dove.rpc.client.DoveClientImpl;
+import com.six.dove.rpc.server.DoveServerImpl;
 import com.six.node_manager.NodeInfo;
 import com.six.node_manager.NodeProtocolManager;
 import com.six.node_manager.service.AbstractService;
@@ -16,23 +16,23 @@ import com.six.node_manager.service.AbstractService;
  */
 public class NodeProtocolManagerImpl extends AbstractService implements NodeProtocolManager {
 
-	private DoveServer server;
-	private DoveClient client;
+	private DoveServerImpl server;
+	private DoveClientImpl client;
 
 	public NodeProtocolManagerImpl(String localHost, int listenPort) {
 		super("NodeProtocolManager");
-		server = new DoveServer(localHost, listenPort);
-		client = new DoveClient();
+		server = new DoveServerImpl(localHost, listenPort);
+		client = new DoveClientImpl();
 	}
 
 	@Override
-	public <T> void registerNodeRpcProtocol(Class<T> protocol, T instance) {
-		server.register(protocol, instance);
+	public void registerNodeRpcProtocol(Object instance) {
+		server.register(instance);
 	}
 
 	@Override
-	public <T> void registerNodeRpcProtocol(ExecutorService executorService, Class<T> protocol, T instance) {
-		server.register(executorService, protocol, instance);
+	public void registerNodeRpcProtocol(ExecutorService executorService,Object instance) {
+		server.register(executorService, instance);
 	}
 
 	@Override

@@ -2,6 +2,7 @@ package com.six.node_manager.discovery.protocol;
 
 import java.util.Objects;
 
+import com.six.dove.rpc.annotation.DoveService;
 import com.six.node_manager.NodeDiscovery;
 import com.six.node_manager.NodeInfo;
 
@@ -11,6 +12,7 @@ import com.six.node_manager.NodeInfo;
  * @email 359852326@qq.com
  * @Description
  */
+@DoveService(protocol=NodeDiscoveryProtocol.class)
 public class NodeDiscoveryProtocolImpl implements NodeDiscoveryProtocol{
 
 	private NodeDiscovery nodeDiscovery;
