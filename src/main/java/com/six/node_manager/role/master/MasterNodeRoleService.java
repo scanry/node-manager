@@ -1,4 +1,4 @@
-package com.six.node_manager.role.protocol;
+package com.six.node_manager.role.master;
 
 import com.six.node_manager.NodeInfo;
 import com.six.node_manager.NodeResource;
@@ -10,7 +10,7 @@ import com.six.node_manager.NodeResource;
 *@version:
 *@describe //TODO
 */
-public interface MasterNodeRoleProtocol {
+public interface MasterNodeRoleService {
 
 	void join(NodeInfo info);
 

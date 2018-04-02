@@ -7,14 +7,14 @@ import com.six.dove.remote.AsyCallback;
 import com.six.dove.rpc.client.DoveClientImpl;
 import com.six.dove.rpc.server.DoveServerImpl;
 import com.six.node_manager.NodeInfo;
-import com.six.node_manager.NodeProtocolManager;
+import com.six.node_manager.RemoteAdapter;
 import com.six.node_manager.service.AbstractService;
 
 /**
  * @author sixliu E-mail:359852326@qq.com
  * @version 创建时间：2018年1月17日 下午9:09:43 类说明
  */
-public class NodeProtocolManagerImpl extends AbstractService implements NodeProtocolManager {
+public class NodeProtocolManagerImpl extends AbstractService implements RemoteAdapter {
 
 	private DoveServerImpl server;
 	private DoveClientImpl client;
@@ -32,7 +32,7 @@ public class NodeProtocolManagerImpl extends AbstractService implements NodeProt
 
 	@Override
 	public void registerNodeRpcProtocol(ExecutorService executorService,Object instance) {
-		server.register(executorService, instance);
+		server.register(instance);
 	}
 
 	@Override

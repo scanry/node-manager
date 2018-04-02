@@ -21,7 +21,7 @@ public class NodeInfo implements Serializable {
 	private String name;
 	private String host;
 	private int port;
-	private NodeState state;
+	private NodeStatus state;
 	private long version;
 
 	@Override

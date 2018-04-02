@@ -1,5 +1,6 @@
 package com.six.node_manager;
 
+import com.six.node_manager.core.NodeEventManager;
 import com.six.node_manager.core.NodeEventManagerImpl;
 
 /**

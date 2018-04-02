@@ -7,7 +7,6 @@ import java.util.TreeMap;
 import java.util.function.BiConsumer;
 
 import com.six.node_manager.NodeEvent;
-import com.six.node_manager.NodeEventManager;
 import com.six.node_manager.NodeEventType;
 import com.six.node_manager.NodeInfo;
 import com.six.node_manager.NodeResource;
@@ -25,7 +24,8 @@ public class ClusterNodes {
 	public static interface MoreThanHalfProcess {
 		void process();
 	}
-	private NodeEventManager nodeEventManager=SpiExtension.getInstance().find(NodeEventManager.class);
+
+	private NodeEventManager nodeEventManager;
 	private Node localNode;
 	private volatile NodeInfo masterNodeInfo;
 	private Map<String, NodeInfo> needDiscoveryNodeInfos;
@@ -37,7 +37,7 @@ public class ClusterNodes {
 	// 丢失的slave节点信息
 	private Map<String, NodeInfo> missSlaveNodeInfos = new HashMap<>();
 
-	public ClusterNodes(Node localNode, Map<String, NodeInfo> needDiscoveryNodeInfos) {
+	public ClusterNodes(Node localNode, Map<String, NodeInfo> needDiscoveryNodeInfos,NodeEventManager nodeEventManager) {
 		this.localNode = localNode;
 		if (null != needDiscoveryNodeInfos) {
 			this.needDiscoveryNodeInfos = new HashMap<>(needDiscoveryNodeInfos.size());
@@ -48,6 +48,7 @@ public class ClusterNodes {
 			this.needDiscoveryNodeInfos = Collections.emptyMap();
 		}
 		this.configNodeSize = this.needDiscoveryNodeInfos.size();
+		this.nodeEventManager=nodeEventManager;
 	}
 
 	public Node getLocalNode() {
@@ -57,13 +58,13 @@ public class ClusterNodes {
 	public NodeInfo getLocalNodeInfo() {
 		return localNode.nodeInfo();
 	}
-	
+
 	public NodeInfo getMasterInfo() {
 		return masterNodeInfo;
 	}
-	
+
 	public void setMasterInfo(NodeInfo masterNodeInfo) {
-		this.masterNodeInfo=masterNodeInfo;
+		this.masterNodeInfo = masterNodeInfo;
 	}
 
 	public int configNodeSize() {

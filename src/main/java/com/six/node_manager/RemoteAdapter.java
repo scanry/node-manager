@@ -9,7 +9,7 @@ import com.six.node_manager.service.Service;
  * @author sixliu E-mail:359852326@qq.com
  * @version 创建时间：2018年1月17日 下午8:15:23 类说明 节点通信协议管理接口
  */
-public interface NodeProtocolManager extends Service{
+public interface RemoteAdapter extends Service{
 
 	/**
 	 * 注册本地协议服务

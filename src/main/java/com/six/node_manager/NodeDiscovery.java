@@ -1,9 +1,7 @@
 package com.six.node_manager;
 
 import java.util.List;
-import java.util.Set;
 
-import com.six.node_manager.role.NodeRole;
 import com.six.node_manager.service.Service;
 
 /**
@@ -14,21 +12,15 @@ import com.six.node_manager.service.Service;
  */
 public interface NodeDiscovery extends Service {
 
-	String getClusterName();
-
-	String getLocalNodeName();
-
-	NodeState getNodeState();
-
 	NodeInfo getLocalNodeInfo();
-
-	NodeRole getNodeRole();
 
 	NodeInfo getMasterNodeInfo();
 
-	Set<NodeInfo> getSlaveNodInfos();
+	List<NodeInfo> getAllSlaveNodeInfos();
+	
+	List<NodeInfo> getOnineSlaveNodeInfos();
+	
+	List<NodeInfo> getOffineSlaveNodeInfos();
 
-	List<NodeInfo> listJoin();
-
-	boolean isHealthy();
+	void registerNodeEventListener(NodeEventType event, NodeEventListen nodeListen);
 }

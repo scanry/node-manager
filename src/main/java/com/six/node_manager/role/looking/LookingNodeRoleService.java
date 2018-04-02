@@ -1,6 +1,4 @@
-package com.six.node_manager.discovery.protocol;
-
-import com.six.node_manager.discovery.MasterProposal;
+package com.six.node_manager.role.looking;
 
 /**   
  * @author sixliu   
@@ -8,7 +6,7 @@ import com.six.node_manager.discovery.MasterProposal;
  * @email  359852326@qq.com  
  * @Description 
  */
-public interface RpcNodeDiscoveryProtocol{
+public interface LookingNodeRoleService{
 
 	MasterProposal sendMasterProposal(MasterProposal masterProposal);
 }

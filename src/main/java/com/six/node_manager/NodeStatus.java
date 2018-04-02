@@ -6,7 +6,8 @@ package com.six.node_manager;
  * @email 359852326@qq.com
  * @Description
  */
-public enum NodeState {
+public enum NodeStatus {
+	
 	/** 未参加选举前的状态 **/
 	LOOKING,
 	/** 参加选举后成为master的状态 **/

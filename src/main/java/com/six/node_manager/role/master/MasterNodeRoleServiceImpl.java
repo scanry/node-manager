@@ -1,4 +1,4 @@
-package com.six.node_manager.role.protocol;
+package com.six.node_manager.role.master;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -6,8 +6,7 @@ import org.slf4j.LoggerFactory;
 import com.six.dove.rpc.annotation.DoveService;
 import com.six.node_manager.NodeInfo;
 import com.six.node_manager.NodeResource;
-import com.six.node_manager.NodeState;
-import com.six.node_manager.role.MasterNodeRole;
+import com.six.node_manager.NodeStatus;
 
 /**
  * @author:MG01867
@@ -16,20 +15,20 @@ import com.six.node_manager.role.MasterNodeRole;
  * @version:
  * @describe //TODO 注意：当节点挂掉后，是否需要将注册的rpc服务取消掉，值得思考
  */
-@DoveService(protocol = MasterNodeRoleProtocol.class)
-public class MasterNodeRoleProtocolImpl implements MasterNodeRoleProtocol {
+@DoveService(protocol = MasterNodeRoleService.class)
+public class MasterNodeRoleServiceImpl implements MasterNodeRoleService {
 
-	private static Logger log = LoggerFactory.getLogger(MasterNodeRoleProtocolImpl.class);
+	private static Logger log = LoggerFactory.getLogger(MasterNodeRoleServiceImpl.class);
 
 	private MasterNodeRole masterNodeRole;
 
-	public MasterNodeRoleProtocolImpl(MasterNodeRole masterNodeRole) {
+	public MasterNodeRoleServiceImpl(MasterNodeRole masterNodeRole) {
 		this.masterNodeRole = masterNodeRole;
 	}
 
 	@Override
 	public final void join(NodeInfo nodeInfo) {
-		if (null != nodeInfo && NodeState.SLAVE == nodeInfo.getState()) {
+		if (null != nodeInfo && NodeStatus.SLAVE == nodeInfo.getState()) {
 			if (null != masterNodeRole.getClusterNodes().removeMissSlaveNodeInfos(nodeInfo.getName())) {
 				log.info("miss slave node[" + nodeInfo + "] join");
 			}
@@ -51,7 +50,7 @@ public class MasterNodeRoleProtocolImpl implements MasterNodeRoleProtocol {
 
 	@Override
 	public final void leave(NodeInfo nodeInfo) {
-		if (null != nodeInfo && NodeState.SLAVE == nodeInfo.getState()) {
+		if (null != nodeInfo && NodeStatus.SLAVE == nodeInfo.getState()) {
 			if (null != masterNodeRole.getClusterNodes().removeJoinSlaveNodeInfos(nodeInfo.getName())) {
 				log.warn("the node[" + nodeInfo + "] didn't join");
 			}

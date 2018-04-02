@@ -15,7 +15,6 @@ import com.six.node_manager.service.AbstractService;
 import com.six.node_manager.service.Service;
 import com.six.node_manager.NodeEvent;
 import com.six.node_manager.NodeEventListen;
-import com.six.node_manager.NodeEventManager;
 
 /**
  * @author sixliu
@@ -61,14 +60,6 @@ public class NodeEventManagerImpl extends AbstractService implements NodeEventMa
 		Objects.requireNonNull(event);
 		Objects.requireNonNull(nodeListen);
 		nodeEventListens.computeIfAbsent(event, newKey -> new HashSet<>()).add(nodeListen);
-	}
-
-	@Override
-	public void unregisterNodeEventListen(NodeEventType event, NodeEventListen nodeListen) {
-		nodeEventListens.computeIfPresent(event, (key, existedSet) -> {
-			existedSet.remove(nodeListen);
-			return existedSet.size() > 0 ? existedSet : null;
-		});
 	}
 
 	@Override

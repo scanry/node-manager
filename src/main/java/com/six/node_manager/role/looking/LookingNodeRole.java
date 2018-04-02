@@ -1,4 +1,4 @@
-package com.six.node_manager.discovery;
+package com.six.node_manager.role.looking;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -11,22 +11,23 @@ import org.slf4j.LoggerFactory;
 
 import com.six.dove.rpc.annotation.DoveService;
 import com.six.node_manager.NodeInfo;
-import com.six.node_manager.NodeProtocolManager;
-import com.six.node_manager.NodeState;
+import com.six.node_manager.NodeResourceCollect;
+import com.six.node_manager.NodeStatus;
+import com.six.node_manager.RemoteAdapter;
 import com.six.node_manager.core.ClusterNodes;
-import com.six.node_manager.core.SpiExtension;
-import com.six.node_manager.discovery.protocol.RpcNodeDiscoveryProtocol;
+import com.six.node_manager.role.AbstractNodeRole;
+import com.six.node_manager.role.NodeRole;
+import com.six.node_manager.role.master.MasterNodeRole;
+import com.six.node_manager.role.slave.SlaveNodeRole;
 
 /**
- * @author sixliu
- * @date 2018年1月12日
- * @email 359852326@qq.com
- * @Description
+ * @author sixliu E-mail:359852326@qq.com
+ * @version 创建时间：2018年1月19日 下午7:38:11 类说明
  */
-public class RpcNodeDiscovery extends AbstractNodeDiscovery {
 
-	private static Logger log = LoggerFactory.getLogger(RpcNodeDiscovery.class);
-	private NodeProtocolManager nodeProtocolManager = SpiExtension.getInstance().find(NodeProtocolManager.class);
+public class LookingNodeRole extends AbstractNodeRole implements NodeRole {
+
+	private static Logger log = LoggerFactory.getLogger(LookingNodeRole.class);
 	private LinkedBlockingQueue<MasterProposal> revMasterProposalQueue = new LinkedBlockingQueue<>();
 	private MasterProposal currentMasterProposal;
 	private AtomicInteger logicClock = new AtomicInteger(0);
@@ -34,18 +35,32 @@ public class RpcNodeDiscovery extends AbstractNodeDiscovery {
 	private final static int finalizeWait = 200;
 	private final static int IGNOREVALUE = -1;
 
-	public RpcNodeDiscovery(ClusterNodes clusterNodes, Map<String, NodeInfo> needDiscoveryNodeInfos,
-			long heartbeatInterval, int allowHeartbeatErrCount) {
-		super(clusterNodes, heartbeatInterval, allowHeartbeatErrCount);
-		nodeProtocolManager.registerNodeRpcProtocol(new RpcNodeDiscoveryProtocolImpl());
+	public LookingNodeRole(RemoteAdapter remoteAdapter,NodeResourceCollect nodeResourceCollect,NodeInfo master, ClusterNodes clusterNodes, long workInterval, int allowHeartbeatErrCount) {
+		super(remoteAdapter,nodeResourceCollect,master, clusterNodes, workInterval, allowHeartbeatErrCount);
+		getRemoteAdapter().registerNodeRpcProtocol(new LookingNodeRoleServiceImpl());
 	}
 
 	@Override
-	protected NodeInfo doElection() {
+	public NodeRole work() {
+		NodeRole staticNodeRole = null;
+		NodeInfo masterNodeInfo = election();
+		if (getNode().getName().equals(masterNodeInfo.getName())) {
+			getNode().master();
+			staticNodeRole = new MasterNodeRole(getRemoteAdapter(),getNodeResourceCollect(),masterNodeInfo, getClusterNodes(), getHeartbeatInterval(),
+					getAllowHeartbeatErrCount());
+		} else {
+			getNode().slave();
+			staticNodeRole = new SlaveNodeRole(getRemoteAdapter(),getNodeResourceCollect(),masterNodeInfo, getClusterNodes(), getHeartbeatInterval(),
+					getAllowHeartbeatErrCount());
+		}
+		return staticNodeRole;
+	}
+
+	private NodeInfo election() {
 		NodeInfo won = null;
 		synchronized (this) {
 			logicClock.incrementAndGet();
-			this.currentMasterProposal = newMasterProposal(getLocalNodeInfo());
+			this.currentMasterProposal = newMasterProposal(getNode().nodeInfo());
 		}
 		sendMasterProposal();
 		Map<String, NodeInfo> masterProposalScoreMap = new HashMap<>();
@@ -77,7 +92,7 @@ public class RpcNodeDiscovery extends AbstractNodeDiscovery {
 						if (isWon(masterProposal, currentMasterProposal)) {
 							this.currentMasterProposal = newMasterProposal(masterProposal.getNode());
 						} else {
-							this.currentMasterProposal = newMasterProposal(getLocalNodeInfo());
+							this.currentMasterProposal = newMasterProposal(getNode().nodeInfo());
 						}
 						sendMasterProposal();
 					} else if (isWon(masterProposal, currentMasterProposal)) {
@@ -100,10 +115,9 @@ public class RpcNodeDiscovery extends AbstractNodeDiscovery {
 						if (masterProposal == null) {
 							won = currentMasterProposal.getNode();
 							revMasterProposalQueue.clear();
-							return won;
+							break;
 						}
 					}
-
 					break;
 				case SLAVE:
 				case MASTER:
@@ -138,10 +152,6 @@ public class RpcNodeDiscovery extends AbstractNodeDiscovery {
 		return won;
 	}
 
-	protected boolean isMember(NodeInfo node) {
-		return getClusterNodes().isMember(node.getName());
-	}
-
 	protected boolean isWon(Map<String, NodeInfo> masterProposalScoreMap, MasterProposal masterProposal) {
 		if (!isMember(masterProposal.getNode())) {
 			return false;
@@ -169,10 +179,10 @@ public class RpcNodeDiscovery extends AbstractNodeDiscovery {
 	private boolean checkMaster(Map<String, NodeInfo> outofelection, MasterProposal masterProposal,
 			int electionLogicClock) {
 		boolean predicate = true;
-		if (!getLocalNodeName().equals(masterProposal.getNode().getName())) {
+		if (!getNode().getName().equals(masterProposal.getNode().getName())) {
 			if (outofelection.get(masterProposal.getNode().getName()) == null)
 				predicate = false;
-			else if (outofelection.get(masterProposal.getNode().getName()).getState() != NodeState.MASTER)
+			else if (outofelection.get(masterProposal.getNode().getName()).getState() != NodeStatus.MASTER)
 				predicate = false;
 		} else if (logicClock.get() != electionLogicClock) {
 			predicate = false;
@@ -183,8 +193,8 @@ public class RpcNodeDiscovery extends AbstractNodeDiscovery {
 	private void sendMasterProposal() {
 		getClusterNodes().forEachNeedDiscoveryNodeInfos((nodeName, nodeInfo) -> {
 			try {
-				RpcNodeDiscoveryProtocol rpcNodeDiscoveryProtocol = nodeProtocolManager.lookupNodeRpcProtocol(nodeInfo,
-						RpcNodeDiscoveryProtocol.class, result -> {
+				LookingNodeRoleService rpcNodeDiscoveryProtocol = getRemoteAdapter().lookupNodeRpcProtocol(nodeInfo,
+						LookingNodeRoleService.class, result -> {
 							if (result.isSuccessed()) {
 								log.info("rpc rpcNodeDiscoveryProtocol.sendMasterProposal[" + nodeInfo + "]successed");
 								if (null != result.getResult()) {
@@ -203,21 +213,26 @@ public class RpcNodeDiscovery extends AbstractNodeDiscovery {
 
 	private MasterProposal newMasterProposal(NodeInfo node) {
 		NodeInfo copyNode = node.copy();
-		copyNode.setState(NodeState.LOOKING);
+		copyNode.setState(NodeStatus.LOOKING);
 		MasterProposal masterProposal = new MasterProposal();
-		masterProposal.setProposer(getLocalNodeName());
+		masterProposal.setProposer(getNode().getName());
 		masterProposal.setNode(copyNode);
 		masterProposal.setLogicClock(logicClock.get());
 		return masterProposal;
 	}
 
-	@DoveService(protocol=RpcNodeDiscoveryProtocol.class)
-	public class RpcNodeDiscoveryProtocolImpl implements RpcNodeDiscoveryProtocol {
+	@Override
+	public void leave() {
+
+	}
+
+	@DoveService(protocol = LookingNodeRoleService.class)
+	public class LookingNodeRoleServiceImpl implements LookingNodeRoleService {
 
 		@Override
 		public MasterProposal sendMasterProposal(MasterProposal masterProposal) {
 			if (null != masterProposal) {
-				if (NodeState.LOOKING == getNodeState()) {
+				if (NodeStatus.LOOKING == getNode().getNodeState()) {
 					revMasterProposalQueue.add(masterProposal);
 				} else {
 					return currentMasterProposal;
