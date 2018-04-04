@@ -9,14 +9,18 @@ import com.six.node_manager.NodeInfo;
  * @version:
  * @describe //TODO
  */
-public class AbstractNodeRoleService implements NodeRoleService {
+public abstract class AbstractNodeRoleService<N extends NodeRole> implements NodeRoleService {
 
-	private NodeRole nodeRole;
+	private N nodeRole;
 
-	public AbstractNodeRoleService(NodeRole nodeRole) {
+	public AbstractNodeRoleService(N nodeRole) {
 		this.nodeRole = nodeRole;
 	}
 
+	protected N getnodeRole() {
+		return nodeRole;
+	}
+	
 	@Override
 	public NodeInfo getNodeInfo() {
 		return nodeRole.getNode().nodeInfo();

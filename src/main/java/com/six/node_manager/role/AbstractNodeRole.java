@@ -1,6 +1,10 @@
 package com.six.node_manager.role;
 
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +23,17 @@ import com.six.node_manager.core.ClusterNodes;
 public abstract class AbstractNodeRole implements NodeRole {
 
 	static Logger log = LoggerFactory.getLogger(AbstractNodeRole.class);
+	private static ExecutorService executorService = Executors
+			.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 2, new ThreadFactory() {
+				AtomicInteger nameIndex = new AtomicInteger(0);
+
+				@Override
+				public Thread newThread(Runnable target) {
+					Thread thread = new Thread(target, "nodeRole-transport-thread-" + nameIndex.getAndIncrement());
+					thread.setDaemon(true);
+					return thread;
+				}
+			});
 	private NodeInfo master;
 	private ClusterNodes clusterNodes;
 	private RemoteAdapter remoteAdapter;
@@ -81,5 +96,9 @@ public abstract class AbstractNodeRole implements NodeRole {
 
 	protected long getAllowMaxHeartbeatInterval() {
 		return allowMaxHeartbeatInterval;
+	}
+
+	protected ExecutorService getExecutorService() {
+		return executorService;
 	}
 }

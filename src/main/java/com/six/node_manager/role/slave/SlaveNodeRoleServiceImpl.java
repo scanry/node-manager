@@ -1,6 +1,7 @@
 package com.six.node_manager.role.slave;
 
 import com.six.node_manager.NodeInfo;
+import com.six.node_manager.role.AbstractNodeRoleService;
 
 /**
 *@author:MG01867
@@ -9,17 +10,24 @@ import com.six.node_manager.NodeInfo;
 *@version:
 *@describe //TODO
 */
-public class SlaveNodeRoleServiceImpl implements SlaveNodeRoleService{
+public class SlaveNodeRoleServiceImpl extends AbstractNodeRoleService<SlaveNodeRole> implements SlaveNodeRoleService{
 
 	
-	private SlaveNodeRole slaveNodeRole;
 	
 	public SlaveNodeRoleServiceImpl(SlaveNodeRole slaveNodeRole) {
-		this.slaveNodeRole=slaveNodeRole;
+		super(slaveNodeRole);
+	}
+
+	@Override
+	public void join(NodeInfo info) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void leave(NodeInfo nodeInfo) {
+		// TODO Auto-generated method stub
+		
 	}
 	
-	@Override
-	public NodeInfo getNodeInfo() {
-		return slaveNodeRole.getNode().nodeInfo();
-	}
 }

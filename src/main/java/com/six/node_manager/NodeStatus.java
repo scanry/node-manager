@@ -13,5 +13,7 @@ public enum NodeStatus {
 	/** 参加选举后成为master的状态 **/
 	MASTER,
 	/** 参加选举后成为slave的状态 **/
-	SLAVE;
+	SLAVE,
+	/** OBSERVER状态,通过配置配，不参与选举 **/
+	OBSERVER;
 }

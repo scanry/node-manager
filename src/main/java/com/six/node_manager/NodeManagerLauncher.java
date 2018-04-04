@@ -7,7 +7,7 @@ import com.six.node_manager.core.ClusterNodes;
 import com.six.node_manager.core.NodeDiscoveryImpl;
 import com.six.node_manager.core.NodeEventManager;
 import com.six.node_manager.core.NodeEventManagerImpl;
-import com.six.node_manager.core.NodeProtocolManagerImpl;
+import com.six.node_manager.core.RemoteAdapterImpl;
 import com.six.node_manager.core.NodeResourceCollectFactory;
 import com.six.node_manager.role.Node;
 import com.six.node_manager.role.NodeRole;
@@ -64,7 +64,7 @@ public class NodeManagerLauncher {
 					NodeEventManager nodeEventManager = new NodeEventManagerImpl();
 					Node localNode = Node.getNode(localNodeInfo, needDiscoveryNodeInfos.size(), nodeEventManager);
 					ClusterNodes clusterNodes = new ClusterNodes(localNode, needDiscoveryNodeInfos, nodeEventManager);
-					RemoteAdapter remoteAdapter = new NodeProtocolManagerImpl(clusterNodes.getLocalNodeInfo().getHost(),
+					RemoteAdapter remoteAdapter = new RemoteAdapterImpl(clusterNodes.getLocalNodeInfo().getHost(),
 							clusterNodes.getLocalNodeInfo().getPort());
 					NodeRole nodeRole = new LookingNodeRole(remoteAdapter, nodeResourceCollect,
 							clusterNodes.getLocalNodeInfo(), clusterNodes, heartbeatInterval, allowHeartbeatErrCount);

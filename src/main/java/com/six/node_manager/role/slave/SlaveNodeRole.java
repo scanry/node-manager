@@ -26,11 +26,11 @@ public class SlaveNodeRole extends AbstractNodeRole implements NodeRole {
 	private int allowHeartbeatErrCount;
 	private volatile int heartbeatErrCount;
 
-	public SlaveNodeRole(RemoteAdapter remoteAdapter,NodeResourceCollect nodeResourceCollect,NodeInfo master, ClusterNodes clusterNodes, long heartbeatInterval,
-			int allowHeartbeatErrCount) {
-		super(remoteAdapter,nodeResourceCollect,master, clusterNodes, heartbeatInterval, allowHeartbeatErrCount);
+	public SlaveNodeRole(RemoteAdapter remoteAdapter, NodeResourceCollect nodeResourceCollect, NodeInfo master,
+			ClusterNodes clusterNodes, long heartbeatInterval, int allowHeartbeatErrCount) {
+		super(remoteAdapter, nodeResourceCollect, master, clusterNodes, heartbeatInterval, allowHeartbeatErrCount);
 		this.allowHeartbeatErrCount = allowHeartbeatErrCount;
-		getRemoteAdapter().registerNodeRpcProtocol(new SlaveNodeRoleServiceImpl(this));
+		getRemoteAdapter().registerNodeRpcProtocol(getExecutorService(), new SlaveNodeRoleServiceImpl(this));
 		MasterNodeRoleService masterNodeRoleProtocol = getRemoteAdapter().lookupNodeRpcProtocol(getMaster(),
 				MasterNodeRoleService.class);
 		masterNodeRoleProtocol.join(getNode().nodeInfo());
@@ -49,8 +49,8 @@ public class SlaveNodeRole extends AbstractNodeRole implements NodeRole {
 			heartbeatErrCount++;
 			if (heartbeatErrCount >= allowHeartbeatErrCount) {
 				getNode().isLooking();
-				staticNodeRole = new LookingNodeRole(getRemoteAdapter(),getNodeResourceCollect(),getNode().nodeInfo(), getClusterNodes(), getHeartbeatInterval(),
-						getAllowHeartbeatErrCount());
+				staticNodeRole = new LookingNodeRole(getRemoteAdapter(), getNodeResourceCollect(), getNode().nodeInfo(),
+						getClusterNodes(), getHeartbeatInterval(), getAllowHeartbeatErrCount());
 			}
 			log.warn("heartbeat to master[" + getMaster() + "] exception", e);
 		}
@@ -62,6 +62,5 @@ public class SlaveNodeRole extends AbstractNodeRole implements NodeRole {
 		MasterNodeRoleService masterNodeRoleProtocol = getRemoteAdapter().lookupNodeRpcProtocol(getMaster(),
 				MasterNodeRoleService.class);
 		masterNodeRoleProtocol.leave(getNode().nodeInfo());
-		getRemoteAdapter().unregisterNodeRpcProtocol(SlaveNodeRoleService.class);
 	}
 }

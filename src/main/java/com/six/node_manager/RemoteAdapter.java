@@ -14,14 +14,6 @@ public interface RemoteAdapter extends Service{
 	/**
 	 * 注册本地协议服务
 	 * 
-	 * @param protocol
-	 *            服务协议
-	 */
-	void registerNodeRpcProtocol(Object instance);
-	
-	/**
-	 * 注册本地协议服务
-	 * 
 	 * @param executorService
 	 *            执行业务逻辑线程池
 	 * @param protocol
@@ -29,12 +21,6 @@ public interface RemoteAdapter extends Service{
 	 */
 	void registerNodeRpcProtocol(ExecutorService executorService,Object instance);
 
-	/**
-	 * 取消注册服务协议
-	 * 
-	 * @param protocol
-	 */
-	void unregisterNodeRpcProtocol(Class<?> protocol);
 
 	/**
 	 * 寻找指定节点上的协议服务

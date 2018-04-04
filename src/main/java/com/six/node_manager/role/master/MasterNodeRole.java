@@ -31,7 +31,7 @@ public class MasterNodeRole extends AbstractNodeRole implements NodeRole {
 		super(remoteAdapter, nodeResourceCollect, master, clusterNodes, heartbeatInterval, allowHeartbeatErrCount);
 		this.clusterNodes = clusterNodes;
 		this.tempMissNodeNames = new LinkedList<>();
-		getRemoteAdapter().registerNodeRpcProtocol(new MasterNodeRoleServiceImpl(this));
+		getRemoteAdapter().registerNodeRpcProtocol(getExecutorService(),new MasterNodeRoleServiceImpl(this));
 	}
 
 	@Override
@@ -69,6 +69,11 @@ public class MasterNodeRole extends AbstractNodeRole implements NodeRole {
 
 	@Override
 	public void leave() {
-		// 不需要做任何处理，从节点做处理即可
+		clusterNodes.forEachNeedDiscoveryNodeInfos((nodeName, item) -> {
+			MasterNodeRoleService masterNodeRoleProtocol = getRemoteAdapter().lookupNodeRpcProtocol(item,
+					MasterNodeRoleService.class,null);
+			masterNodeRoleProtocol.leave(getNode().nodeInfo());
+		});
+
 	}
 }

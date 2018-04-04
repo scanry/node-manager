@@ -14,30 +14,21 @@ import com.six.node_manager.service.AbstractService;
  * @author sixliu E-mail:359852326@qq.com
  * @version 创建时间：2018年1月17日 下午9:09:43 类说明
  */
-public class NodeProtocolManagerImpl extends AbstractService implements RemoteAdapter {
+public class RemoteAdapterImpl extends AbstractService implements RemoteAdapter {
 
 	private DoveServerImpl server;
 	private DoveClientImpl client;
 
-	public NodeProtocolManagerImpl(String localHost, int listenPort) {
+	public RemoteAdapterImpl(String localHost, int listenPort) {
 		super("NodeProtocolManager");
 		server = new DoveServerImpl(localHost, listenPort);
 		client = new DoveClientImpl();
 	}
 
-	@Override
-	public void registerNodeRpcProtocol(Object instance) {
-		server.register(instance);
-	}
 
 	@Override
 	public void registerNodeRpcProtocol(ExecutorService executorService,Object instance) {
 		server.register(instance);
-	}
-
-	@Override
-	public void unregisterNodeRpcProtocol(Class<?> protocol) {
-		server.unregister(protocol);
 	}
 
 	@Override

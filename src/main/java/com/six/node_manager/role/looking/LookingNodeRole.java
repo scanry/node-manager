@@ -35,9 +35,10 @@ public class LookingNodeRole extends AbstractNodeRole implements NodeRole {
 	private final static int finalizeWait = 200;
 	private final static int IGNOREVALUE = -1;
 
-	public LookingNodeRole(RemoteAdapter remoteAdapter,NodeResourceCollect nodeResourceCollect,NodeInfo master, ClusterNodes clusterNodes, long workInterval, int allowHeartbeatErrCount) {
-		super(remoteAdapter,nodeResourceCollect,master, clusterNodes, workInterval, allowHeartbeatErrCount);
-		getRemoteAdapter().registerNodeRpcProtocol(new LookingNodeRoleServiceImpl());
+	public LookingNodeRole(RemoteAdapter remoteAdapter, NodeResourceCollect nodeResourceCollect, NodeInfo master,
+			ClusterNodes clusterNodes, long workInterval, int allowHeartbeatErrCount) {
+		super(remoteAdapter, nodeResourceCollect, master, clusterNodes, workInterval, allowHeartbeatErrCount);
+		getRemoteAdapter().registerNodeRpcProtocol(getExecutorService(), new LookingNodeRoleServiceImpl());
 	}
 
 	@Override
@@ -46,12 +47,12 @@ public class LookingNodeRole extends AbstractNodeRole implements NodeRole {
 		NodeInfo masterNodeInfo = election();
 		if (getNode().getName().equals(masterNodeInfo.getName())) {
 			getNode().master();
-			staticNodeRole = new MasterNodeRole(getRemoteAdapter(),getNodeResourceCollect(),masterNodeInfo, getClusterNodes(), getHeartbeatInterval(),
-					getAllowHeartbeatErrCount());
+			staticNodeRole = new MasterNodeRole(getRemoteAdapter(), getNodeResourceCollect(), masterNodeInfo,
+					getClusterNodes(), getHeartbeatInterval(), getAllowHeartbeatErrCount());
 		} else {
 			getNode().slave();
-			staticNodeRole = new SlaveNodeRole(getRemoteAdapter(),getNodeResourceCollect(),masterNodeInfo, getClusterNodes(), getHeartbeatInterval(),
-					getAllowHeartbeatErrCount());
+			staticNodeRole = new SlaveNodeRole(getRemoteAdapter(), getNodeResourceCollect(), masterNodeInfo,
+					getClusterNodes(), getHeartbeatInterval(), getAllowHeartbeatErrCount());
 		}
 		return staticNodeRole;
 	}

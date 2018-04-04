@@ -17,4 +17,8 @@ public interface NodeRoleService {
 	 * @return
 	 */
 	NodeInfo getNodeInfo();
+	
+	void join(NodeInfo info);
+
+	void leave(NodeInfo nodeInfo);
 }

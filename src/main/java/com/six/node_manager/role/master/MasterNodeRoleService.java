@@ -1,7 +1,7 @@
 package com.six.node_manager.role.master;
 
-import com.six.node_manager.NodeInfo;
 import com.six.node_manager.NodeResource;
+import com.six.node_manager.role.NodeRoleService;
 
 /**
 *@author:MG01867
@@ -10,11 +10,8 @@ import com.six.node_manager.NodeResource;
 *@version:
 *@describe //TODO
 */
-public interface MasterNodeRoleService {
+public interface MasterNodeRoleService extends NodeRoleService{
 
-	void join(NodeInfo info);
 
-	void leave(NodeInfo nodeInfo);
-	
 	void heartbeat(NodeResource nodeResource);
 }
